@@ -87,13 +87,13 @@ export const SocialShareModal = ({ isOpen, onClose, score }: SocialShareModalPro
   };
 
   const platforms = [
-    { name: 'X.com', action: shareLinks.twitter, icon: '𝕏', color: 'bg-black hover:bg-gray-800' },
-    { name: 'WhatsApp', action: shareLinks.whatsapp, icon: '📱', color: 'bg-green-500 hover:bg-green-600' },
-    { name: 'Facebook', action: shareLinks.facebook, icon: '📘', color: 'bg-blue-600 hover:bg-blue-700' },
-    { name: 'Reddit', action: shareLinks.reddit, icon: '🤖', color: 'bg-orange-600 hover:bg-orange-700' },
-    { name: 'LinkedIn', action: shareLinks.linkedin, icon: '💼', color: 'bg-blue-700 hover:bg-blue-800' },
-    { name: 'Telegram', action: shareLinks.telegram, icon: '✈️', color: 'bg-blue-500 hover:bg-blue-600' },
-    { name: 'Email', action: shareLinks.email, icon: '✉️', color: 'bg-gray-600 hover:bg-gray-700' },
+    { name: 'X.com', action: shareLinks.twitter, icon: '/icons/x.png', color: 'bg-black hover:bg-gray-800' },
+    { name: 'WhatsApp', action: shareLinks.whatsapp, icon: '/icons/whatsapp.png', color: 'bg-green-500 hover:bg-green-600' },
+    { name: 'Facebook', action: shareLinks.facebook, icon: '/icons/facebook.png', color: 'bg-blue-600 hover:bg-blue-700' },
+    { name: 'Reddit', action: shareLinks.reddit, icon: '/icons/reddit.png', color: 'bg-orange-600 hover:bg-orange-700' },
+    { name: 'LinkedIn', action: shareLinks.linkedin, icon: '/icons/linkedin.png', color: 'bg-blue-700 hover:bg-blue-800' },
+    { name: 'Telegram', action: shareLinks.telegram, icon: '/icons/telegram.png', color: 'bg-blue-500 hover:bg-blue-600' },
+    { name: 'Email', action: shareLinks.email, icon: '/icons/email.png', color: 'bg-gray-600 hover:bg-gray-700' },
     { name: copySuccess ? 'Copied!' : 'Copy Link', action: shareLinks.copy, icon: copySuccess ? '✓' : '📋', color: copySuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600' },
   ];
 
@@ -131,7 +131,15 @@ export const SocialShareModal = ({ isOpen, onClose, score }: SocialShareModalPro
                   }}
                   className={`${platform.color} text-white h-12 text-sm font-medium flex items-center justify-center gap-2`}
                 >
-                  <span className="text-lg">{platform.icon}</span>
+                  {platform.icon.startsWith('/icons/') ? (
+                    <img 
+                      src={platform.icon} 
+                      alt={platform.name} 
+                      className="w-5 h-5 object-contain" 
+                    />
+                  ) : (
+                    <span className="text-lg">{platform.icon}</span>
+                  )}
                   {platform.name}
                 </Button>
               ))}
