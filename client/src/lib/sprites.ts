@@ -28,6 +28,31 @@ export class Turkey {
   }
 
   public draw(ctx: CanvasRenderingContext2D) {
+    // Calculate rotation based on velocity (-15 to +30 degrees)
+    const maxRotation = Math.PI / 6; // 30 degrees downward when falling
+    const minRotation = -Math.PI / 12; // -15 degrees upward when flapping
+    
+    let rotation: number;
+    if (this.velocity >= 0) {
+      // Falling: map positive velocity to downward rotation (0 to +30 degrees)
+      const clampedVelocity = Math.min(this.velocity, 15);
+      rotation = (clampedVelocity / 15) * maxRotation;
+    } else {
+      // Flapping up: map negative velocity to upward rotation (0 to -15 degrees)
+      const clampedVelocity = Math.min(Math.abs(this.velocity), 15);
+      rotation = -(clampedVelocity / 15) * Math.abs(minRotation);
+    }
+    
+    // Save canvas state
+    ctx.save();
+    
+    // Translate to turkey center, rotate, then translate back
+    const centerX = this.x + this.width / 2;
+    const centerY = this.y + this.height / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.translate(-centerX, -centerY);
+
     // Turkey body (sienna brown)
     ctx.fillStyle = '#A0522D';
     ctx.fillRect(this.x, this.y, this.width * 0.8, this.height * 0.7);
@@ -63,6 +88,9 @@ export class Turkey {
     ctx.fillStyle = '#FFA500';
     ctx.fillRect(this.x + 10, this.y + this.height - 2, 6, 8);
     ctx.fillRect(this.x + 20, this.y + this.height - 2, 6, 8);
+    
+    // Restore canvas state
+    ctx.restore();
   }
 }
 
