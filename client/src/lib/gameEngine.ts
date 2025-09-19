@@ -2,6 +2,7 @@ import { GamePhase } from "./stores/useGame";
 import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } from "./sprites.ts";
 import { DIFFICULTY_LEVELS, GAME_CONSTANTS, COLORS, AUDIO_CONFIG, type DifficultySettings } from '../constants/difficulty';
 import { checkTurkeyObstacleCollision, checkSimpleCollision } from './collision';
+import { shouldSpawn, calculateObstacleGapPosition, calculatePowerUpSpawnPosition, calculateLeafSpawnPosition, getRandomSpawnCount, getRandomPowerUpType } from './spawn';
 
 // Use centralized difficulty constants
 const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
@@ -185,7 +186,7 @@ export class GameEngine {
 
     // Spawn obstacles with dynamic difficulty
     const currentObstacleInterval = this.getObstacleSpawnInterval();
-    if (currentTime - this.lastObstacleTime > currentObstacleInterval) {
+    if (shouldSpawn(currentTime, this.lastObstacleTime, currentObstacleInterval)) {
       this.spawnObstacle();
       this.lastObstacleTime = currentTime;
     }
@@ -450,18 +451,18 @@ export class GameEngine {
 
   private spawnObstacle() {
     const dynamicGap = this.getCurrentObstacleGap();
-    const gapStart = Math.random() * (this.canvas.height - dynamicGap - 200) + 100;
+    const gapStart = calculateObstacleGapPosition(this.canvas.height, dynamicGap, 100);
     this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, dynamicGap, this.canvas.height));
   }
 
 
   private updateLeafParticles(currentTime: number) {
     // Spawn new leaf particles
-    if (currentTime - this.lastLeafSpawnTime > this.leafSpawnInterval) {
+    if (shouldSpawn(currentTime, this.lastLeafSpawnTime, this.leafSpawnInterval)) {
       // Spawn 1-2 leaves at a time
-      const numLeaves = Math.random() > 0.5 ? 1 : 2;
+      const numLeaves = getRandomSpawnCount(1, 2, 0.5);
       for (let i = 0; i < numLeaves; i++) {
-        const x = Math.random() * (this.canvas.width + 50) - 25; // Start from random X position
+        const x = calculateLeafSpawnPosition(this.canvas.width, 25);
         const y = -10; // Start above canvas
         this.leafParticles.push(new LeafParticle(x, y));
       }
@@ -493,7 +494,7 @@ export class GameEngine {
 
   private updatePowerUps(currentTime: number) {
     // Spawn new power-ups occasionally
-    if (currentTime - this.lastPowerUpSpawnTime > this.powerUpSpawnInterval) {
+    if (shouldSpawn(currentTime, this.lastPowerUpSpawnTime, this.powerUpSpawnInterval)) {
       this.spawnPowerUp();
       this.lastPowerUpSpawnTime = currentTime;
     }
@@ -527,12 +528,10 @@ export class GameEngine {
 
   private spawnPowerUp() {
     const types: PowerUpType[] = ['pumpkin', 'acorn', 'maple_leaf', 'turkey_feather'];
-    const randomType = types[Math.floor(Math.random() * types.length)];
+    const randomType = getRandomPowerUpType(types);
     
     // Spawn at random height, avoiding top and bottom areas
-    const minY = 50;
-    const maxY = this.canvas.height - 100;
-    const y = minY + Math.random() * (maxY - minY);
+    const y = calculatePowerUpSpawnPosition(this.canvas.height, 50, 100);
     
     const powerUp = new PowerUp(this.canvas.width, y, randomType);
     this.powerUps.push(powerUp);
