@@ -1,13 +1,14 @@
 import { GamePhase } from "../lib/stores/useGame";
 import { getPowerUpIcon, getPowerUpHudLabel, getPowerUpFeedbackLabel } from "../constants/ui/powerupMeta";
+import { ActivePowerUp, CollectionFeedback } from "../types/game";
 
 interface GameUIProps {
   score: number;
   level: number;
   highScore: number;
   gamePhase: GamePhase;
-  activePowerUps: Array<{ type: string; endTime: number; effect: any }>;
-  collectionFeedback: { type: string; timestamp: number } | null;
+  activePowerUps: ActivePowerUp[];
+  collectionFeedback: CollectionFeedback | null;
   onRestart: () => void;
   onStart: () => void;
   onToggleMute: () => void;
