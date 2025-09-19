@@ -1,4 +1,5 @@
 import { GamePhase } from "../lib/stores/useGame";
+import { getPowerUpIcon, getPowerUpHudLabel, getPowerUpFeedbackLabel } from "../constants/ui/powerupMeta";
 
 interface GameUIProps {
   score: number;
@@ -83,25 +84,6 @@ const GameUI = ({
           >
             {activePowerUps.map((powerUp) => {
               const timeLeft = Math.max(0, powerUp.endTime - Date.now()) / 1000;
-              const getIcon = (type: string) => {
-                switch (type) {
-                  case 'pumpkin': return '🎃';
-                  case 'acorn': return '🌰';
-                  case 'maple_leaf': return '🍁';
-                  case 'turkey_feather': return '🪶';
-                  default: return '⭐';
-                }
-              };
-              
-              const getLabel = (type: string) => {
-                switch (type) {
-                  case 'pumpkin': return 'Shield';
-                  case 'acorn': return '2x Points';
-                  case 'maple_leaf': return 'Light';
-                  case 'turkey_feather': return 'Protect';
-                  default: return 'Power';
-                }
-              };
 
               return (
                 <div
@@ -123,10 +105,10 @@ const GameUI = ({
                   }}
                 >
                   <div style={{ fontSize: "16px", marginBottom: "4px" }}>
-                    {getIcon(powerUp.type)}
+                    {getPowerUpIcon(powerUp.type)}
                   </div>
                   <div style={{ marginBottom: "2px" }}>
-                    {getLabel(powerUp.type)}
+                    {getPowerUpHudLabel(powerUp.type)}
                   </div>
                   <div style={{ fontSize: "8px" }}>
                     {powerUp.type === 'turkey_feather' ? 'Active' : `${timeLeft.toFixed(1)}s`}
@@ -162,26 +144,10 @@ const GameUI = ({
             }}
           >
             <div style={{ fontSize: "20px", marginBottom: "6px" }}>
-              {(() => {
-                switch (collectionFeedback.type) {
-                  case 'pumpkin': return '🎃';
-                  case 'acorn': return '🌰';
-                  case 'maple_leaf': return '🍁';
-                  case 'turkey_feather': return '🪶';
-                  default: return '⭐';
-                }
-              })()}
+              {getPowerUpIcon(collectionFeedback.type)}
             </div>
             <div>
-              {(() => {
-                switch (collectionFeedback.type) {
-                  case 'pumpkin': return 'SHIELD ACTIVATED!';
-                  case 'acorn': return 'DOUBLE POINTS!';
-                  case 'maple_leaf': return 'LIGHTER GRAVITY!';
-                  case 'turkey_feather': return 'PROTECTION GRANTED!';
-                  default: return 'POWER-UP!';
-                }
-              })()}
+              {getPowerUpFeedbackLabel(collectionFeedback.type)}
             </div>
           </div>
         )}
