@@ -27,36 +27,48 @@ const GameCanvas = ({
 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
+  
+  // Callback refs to avoid stale closures
+  const onScoreIncreaseRef = useRef(onScoreIncrease);
+  const onGameOverRef = useRef(onGameOver);
+  const onLevelUpRef = useRef(onLevelUp);
+  const onPowerUpCollectedRef = useRef(onPowerUpCollected);
+  
+  // Game state and handler refs for stable event handling
+  const gamePhaseRef = useRef(gamePhase);
+  const onStartRef = useRef(onStart);
+  const onFlapRef = useRef(onFlap);
+  const onRestartRef = useRef(onRestart);
 
+  // Stable event handlers using refs (no dependencies)
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "Space") {
         event.preventDefault();
 
-        if (gamePhase === "ready") {
-          onStart();
-        } else if (gamePhase === "playing" && gameEngineRef.current) {
+        if (gamePhaseRef.current === "ready") {
+          onStartRef.current();
+        } else if (gamePhaseRef.current === "playing" && gameEngineRef.current) {
           gameEngineRef.current.flap();
-          onFlap();
-        } else if (gamePhase === "ended") {
-          onRestart();
+          onFlapRef.current();
+        } else if (gamePhaseRef.current === "ended") {
+          onRestartRef.current();
         }
       }
-      
     },
-    [gamePhase, onStart, onFlap, onRestart],
+    [], // No dependencies - fully stable
   );
 
   const handleClick = useCallback(() => {
-    if (gamePhase === "ready") {
-      onStart();
-    } else if (gamePhase === "playing" && gameEngineRef.current) {
+    if (gamePhaseRef.current === "ready") {
+      onStartRef.current();
+    } else if (gamePhaseRef.current === "playing" && gameEngineRef.current) {
       gameEngineRef.current.flap();
-      onFlap();
-    } else if (gamePhase === "ended") {
-      onRestart();
+      onFlapRef.current();
+    } else if (gamePhaseRef.current === "ended") {
+      onRestartRef.current();
     }
-  }, [gamePhase, onStart, onFlap, onRestart]);
+  }, []); // No dependencies - fully stable
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -71,14 +83,14 @@ const GameCanvas = ({
       return;
     }
 
-    // Initialize game engine
+    // Initialize game engine with stable callback wrappers
     gameEngineRef.current = new GameEngine(
       canvas,
       ctx,
-      onScoreIncrease,
-      onGameOver,
-      onLevelUp,
-      onPowerUpCollected,
+      () => onScoreIncreaseRef.current(),
+      () => onGameOverRef.current(),
+      (level: number) => onLevelUpRef.current(level),
+      (type: string) => onPowerUpCollectedRef.current(type),
     );
 
     // Start game loop
@@ -95,7 +107,19 @@ const GameCanvas = ({
       document.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("click", handleClick);
     };
-  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
+  }, []); // No dependencies - engine created once and persists
+
+  // Update all refs when props change to avoid stale closures
+  useEffect(() => {
+    onScoreIncreaseRef.current = onScoreIncrease;
+    onGameOverRef.current = onGameOver;
+    onLevelUpRef.current = onLevelUp;
+    onPowerUpCollectedRef.current = onPowerUpCollected;
+    gamePhaseRef.current = gamePhase;
+    onStartRef.current = onStart;
+    onFlapRef.current = onFlap;
+    onRestartRef.current = onRestart;
+  }, [onScoreIncrease, onGameOver, onLevelUp, onPowerUpCollected, gamePhase, onStart, onFlap, onRestart]);
 
   // Update power-ups display periodically
   useEffect(() => {
