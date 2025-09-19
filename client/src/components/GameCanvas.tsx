@@ -5,7 +5,7 @@ import { GamePhase } from "../lib/stores/useGame";
 interface GameCanvasProps {
   onScoreIncrease: () => void;
   onGameOver: () => void;
-  currentLevel: number;
+  onLevelUp: (level: number) => void;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
@@ -15,7 +15,7 @@ interface GameCanvasProps {
 const GameCanvas = ({
   onScoreIncrease,
   onGameOver,
-  currentLevel,
+  onLevelUp,
   gamePhase,
   onStart,
   onFlap,
@@ -81,6 +81,7 @@ const GameCanvas = ({
       ctx,
       onScoreIncrease,
       onGameOver,
+      onLevelUp,
     );
 
     console.log('🎮 Game engine created');
@@ -109,12 +110,6 @@ const GameCanvas = ({
     }
   }, [gamePhase]);
 
-  // Sync level with game engine
-  useEffect(() => {
-    if (gameEngineRef.current) {
-      gameEngineRef.current.setCurrentLevel(currentLevel);
-    }
-  }, [currentLevel]);
 
   return (
     <canvas
