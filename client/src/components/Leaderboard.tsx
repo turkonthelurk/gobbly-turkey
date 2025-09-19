@@ -111,7 +111,7 @@ export const Leaderboard = ({ isOpen, onClose, currentScore }: LeaderboardProps)
                             {score.name || 'Anonymous Turkey'}
                           </div>
                           {score.handle && (
-                            <div className="text-sm text-blue-600">@{score.handle}</div>
+                            <div className="text-sm text-blue-600">{score.handle.startsWith('@') ? score.handle : '@' + score.handle}</div>
                           )}
                           <div className="text-xs text-gray-500">{formatDate(score.createdAt)}</div>
                         </div>
