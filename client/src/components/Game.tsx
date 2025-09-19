@@ -23,6 +23,7 @@ const Game = () => {
     return parseInt(localStorage.getItem("gobblyTurkeyHighScore") || "0");
   });
   const [activePowerUps, setActivePowerUps] = useState<Array<{ type: string; endTime: number; effect: any }>>([]);
+  const [collectionFeedback, setCollectionFeedback] = useState<{ type: string; timestamp: number } | null>(null);
 
   // Initialize audio when component mounts
   useEffect(() => {
@@ -64,6 +65,13 @@ const Game = () => {
     setActivePowerUps(powerUps);
   }, []);
 
+  const handlePowerUpCollected = useCallback((type: string) => {
+    console.log(`🎆 Power-up collected: ${type}`);
+    setCollectionFeedback({ type, timestamp: Date.now() });
+    // Clear feedback after 2 seconds
+    setTimeout(() => setCollectionFeedback(null), 2000);
+  }, []);
+
   const handleGameOver = useCallback(() => {
     playHit();
   }, [playHit]);
@@ -90,6 +98,7 @@ const Game = () => {
         onGameOver={handleGameOver}
         onLevelUp={handleLevelUp}
         onPowerUpsUpdate={handlePowerUpsUpdate}
+        onPowerUpCollected={handlePowerUpCollected}
         gamePhase={phase}
         onStart={start}
         onFlap={playFlap}
@@ -101,6 +110,7 @@ const Game = () => {
         highScore={highScore}
         gamePhase={phase}
         activePowerUps={activePowerUps}
+        collectionFeedback={collectionFeedback}
         onRestart={handleRestart}
         onStart={start}
         onToggleMute={toggleMute}

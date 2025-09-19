@@ -6,6 +6,7 @@ interface GameUIProps {
   highScore: number;
   gamePhase: GamePhase;
   activePowerUps: Array<{ type: string; endTime: number; effect: any }>;
+  collectionFeedback: { type: string; timestamp: number } | null;
   onRestart: () => void;
   onStart: () => void;
   onToggleMute: () => void;
@@ -18,6 +19,7 @@ const GameUI = ({
   highScore,
   gamePhase,
   activePowerUps,
+  collectionFeedback,
   onRestart,
   onStart,
   onToggleMute,
@@ -112,7 +114,7 @@ const GameUI = ({
                     textAlign: "center",
                     border: "2px solid #FFD700",
                     boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)",
-                    animation: timeLeft < 2 ? "blink 0.5s infinite" : "none",
+                    animation: (timeLeft < 3 && powerUp.type !== 'turkey_feather') ? "blink 0.5s infinite" : "none",
                   }}
                 >
                   <div style={{ fontSize: "16px", marginBottom: "4px" }}>
@@ -122,11 +124,57 @@ const GameUI = ({
                     {getLabel(powerUp.type)}
                   </div>
                   <div style={{ fontSize: "8px" }}>
-                    {timeLeft.toFixed(1)}s
+                    {powerUp.type === 'turkey_feather' ? 'Active' : `${timeLeft.toFixed(1)}s`}
                   </div>
                 </div>
               );
             })}
+          </div>
+        )}
+        
+        {/* Collection Feedback Toast */}
+        {collectionFeedback && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "rgba(34, 139, 34, 0.95)",
+              color: "#FFFFFF",
+              padding: "12px 20px",
+              borderRadius: "12px",
+              fontSize: "14px",
+              fontFamily: "'Press Start 2P', monospace",
+              textAlign: "center",
+              border: "3px solid #FFD700",
+              boxShadow: "0 0 20px rgba(255, 215, 0, 0.8)",
+              animation: "slideIn 0.3s ease-out",
+              zIndex: 30,
+            }}
+          >
+            <div style={{ fontSize: "20px", marginBottom: "6px" }}>
+              {(() => {
+                switch (collectionFeedback.type) {
+                  case 'pumpkin': return '🎃';
+                  case 'acorn': return '🌰';
+                  case 'maple_leaf': return '🍁';
+                  case 'turkey_feather': return '🪶';
+                  default: return '⭐';
+                }
+              })()}
+            </div>
+            <div>
+              {(() => {
+                switch (collectionFeedback.type) {
+                  case 'pumpkin': return 'SHIELD ACTIVATED!';
+                  case 'acorn': return 'DOUBLE POINTS!';
+                  case 'maple_leaf': return 'LIGHTER GRAVITY!';
+                  case 'turkey_feather': return 'PROTECTION GRANTED!';
+                  default: return 'POWER-UP!';
+                }
+              })()}
+            </div>
           </div>
         )}
       </div>

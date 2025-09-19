@@ -28,3 +28,21 @@ canvas {
   height: 100% !important;
   touch-action: none;
 }
+
+/* Power-up blinking animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Collection feedback slide-in animation */
+@keyframes slideIn {
+  0% { 
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% { 
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
