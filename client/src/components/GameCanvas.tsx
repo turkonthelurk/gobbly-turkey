@@ -24,15 +24,21 @@ const GameCanvas = ({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      console.log(`🎹 Key pressed: ${event.code}, Game phase: ${gamePhase}`);
+      
       if (event.code === "Space") {
+        console.log('🔥 SPACEBAR PRESSED!');
         event.preventDefault();
 
         if (gamePhase === "ready") {
+          console.log('🚀 Starting game from ready state');
           onStart();
         } else if (gamePhase === "playing" && gameEngineRef.current) {
+          console.log('🦃 Turkey flap!');
           gameEngineRef.current.flap();
           onFlap();
         } else if (gamePhase === "ended") {
+          console.log('🔄 Reloading game');
           window.location.reload();
         }
       }
@@ -53,12 +59,20 @@ const GameCanvas = ({
   }, [gamePhase, onStart]);
 
   useEffect(() => {
+    console.log('🎨 GameCanvas initializing...');
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      console.log('❌ Canvas not found');
+      return;
+    }
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      console.log('❌ Canvas context not available');
+      return;
+    }
 
+    console.log('✅ Canvas and context ready');
     // Initialize game engine
     gameEngineRef.current = new GameEngine(
       canvas,
@@ -67,14 +81,17 @@ const GameCanvas = ({
       onGameOver,
     );
 
+    console.log('🎮 Game engine created');
     // Start game loop
     gameEngineRef.current.start();
 
     // Event listeners
     document.addEventListener("keydown", handleKeyDown);
     canvas.addEventListener("click", handleClick);
+    console.log('🎯 Event listeners added');
 
     return () => {
+      console.log('🧹 GameCanvas cleanup');
       if (gameEngineRef.current) {
         gameEngineRef.current.stop();
       }
