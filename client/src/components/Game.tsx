@@ -60,8 +60,11 @@ const Game = () => {
 
   const handleScoreIncrease = useCallback(() => {
     setScore((prev) => prev + 1);
-    playSuccess();
-  }, [playSuccess]);
+    // Only play success sound if audio is initialized
+    if (isInitialized) {
+      playSuccess();
+    }
+  }, [playSuccess, isInitialized]);
 
   const handleLevelUp = useCallback((newLevel: number) => {
     // UI level update (silent in production)
