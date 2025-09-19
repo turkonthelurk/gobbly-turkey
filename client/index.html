@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Gobbly Turkey - 2D Thanksgiving Game</title>
+    <script>
+      // Prevent Replit debugging script errors from breaking the game
+      window.addEventListener('error', function(e) {
+        if (e.filename && (e.filename.includes('devtools') || e.filename.includes('eruda') || e.filename.includes('injected'))) {
+          console.log('Ignoring Replit debugging script error:', e.message);
+          e.preventDefault();
+          return false;
+        }
+      });
+      
+      // Add additional error catching for unhandled promises
+      window.addEventListener('unhandledrejection', function(e) {
+        console.log('Unhandled promise rejection caught:', e.reason);
+      });
+    </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
       

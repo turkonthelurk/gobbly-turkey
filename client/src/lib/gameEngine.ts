@@ -106,6 +106,7 @@ export class GameEngine {
   }
 
   public setGameState(state: GamePhase) {
+    console.log(`🎮 Game state changing to: ${state}`);
     this.gameState = state;
     if (state === 'ready') {
       this.reset();
@@ -119,6 +120,7 @@ export class GameEngine {
   }
 
   public start() {
+    console.log('🚀 GameEngine.start() called');
     // Prevent multiple game loops
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
@@ -126,6 +128,7 @@ export class GameEngine {
     }
     
     this.gameLoop();
+    console.log('✅ Game loop started');
   }
 
   public stop() {
@@ -167,9 +170,15 @@ export class GameEngine {
   }
 
   private gameLoop = () => {
-    this.update();
-    this.draw();
-    this.animationId = requestAnimationFrame(this.gameLoop);
+    try {
+      this.update();
+      this.draw();
+      this.animationId = requestAnimationFrame(this.gameLoop);
+    } catch (error) {
+      console.error('Game loop error caught:', error);
+      // Try to continue the game loop even if there's an error
+      this.animationId = requestAnimationFrame(this.gameLoop);
+    }
   };
 
   private update() {
@@ -223,6 +232,7 @@ export class GameEngine {
       // Check for scoring
       if (!obstacle.scored && obstacle.x + obstacle.width < this.turkey.x) {
         obstacle.scored = true;
+        console.log('🏆 Score! Turkey passed obstacle');
         
         // Check if acorn power-up is active for double points
         const acornEffect = this.activePowerUps.get('acorn');
@@ -230,6 +240,7 @@ export class GameEngine {
           // Give double points
           this.onScoreIncrease();
           this.onScoreIncrease();
+          console.log('✨ Double points from acorn!');
         } else {
           // Normal single point
           this.onScoreIncrease();
