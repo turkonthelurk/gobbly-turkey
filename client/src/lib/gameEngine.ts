@@ -15,11 +15,11 @@ interface DifficultySettings {
 const DIFFICULTY: { [key: number]: DifficultySettings } = {
   1: {
     level: 1,
-    obstacleSpeed: 2.2,
-    spawnInterval: 1600,     // Easier: longer intervals between obstacles
-    gravity: 0.4,           // Easier: lower gravity
-    flapStrength: -9,       // Easier: stronger flap
-    obstacleGap: 190,       // Easier: larger gap (≈30-35% of 600px height)
+    obstacleSpeed: 2.6,
+    spawnInterval: 1350,     // Snappy-but-fair: moderate intervals
+    gravity: 0.38,          // Snappy-but-fair: slightly lower gravity
+    flapStrength: -6.2,     // Snappy-but-fair: balanced flap strength
+    obstacleGap: 170,       // Snappy-but-fair: ~28% height gap
     description: "Beginner Mode - Get your wings ready!"
   },
   2: {
@@ -71,7 +71,7 @@ export class GameEngine {
   private gameState: GamePhase = 'ready';
   private animationId: number | null = null;
   private lastObstacleTime = 0;
-  private obstacleSpawnInterval = 1600; // 1.6 seconds for easier Level 1
+  private obstacleSpawnInterval = 1350; // 1.35 seconds for snappy-but-fair Level 1
   private lastLeafSpawnTime = 0;
   private leafSpawnInterval = 300; // Spawn leaves every 300ms
   private lastPowerUpSpawnTime = 0;
@@ -80,17 +80,17 @@ export class GameEngine {
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
   private currentLevel = 1; // Track current level
-  private baseObstacleSpeed = 2.2; // Level 1 obstacle speed
-  private baseObstacleInterval = 1600; // Level 1 obstacle spawn interval
+  private baseObstacleSpeed = 2.6; // Level 1 obstacle speed
+  private baseObstacleInterval = 1350; // Level 1 obstacle spawn interval
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
   private onLevelUp?: (level: number) => void;
 
-  // Game constants - Level 1 made easier per requirements
-  private readonly GRAVITY = 0.4;           // Slightly lower gravity (was 0.5)
-  private readonly FLAP_STRENGTH = -9;      // Higher flap impulse (was -8)
-  private readonly OBSTACLE_SPEED = 2.2;    // Slightly faster base speed
-  private readonly OBSTACLE_GAP = 190;      // Larger gap (≈30-35% height)
+  // Game constants - Level 1 balanced for snappy-but-fair experience
+  private readonly GRAVITY = 0.38;          // Snappy-but-fair gravity
+  private readonly FLAP_STRENGTH = -6.2;    // Balanced flap strength
+  private readonly OBSTACLE_SPEED = 2.6;    // Snappy-but-fair speed
+  private readonly OBSTACLE_GAP = 170;      // ~28% height gap
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -123,17 +123,13 @@ export class GameEngine {
   }
 
   public start() {
-    console.log('🎮 ACCEPTANCE TEST: Game loop starting...');
-    console.log(`🔍 ACCEPTANCE TEST: Animation ID before start: ${this.animationId}`);
-    
+    // Prevent multiple game loops
     if (this.animationId !== null) {
-      console.warn(`⚠️ ACCEPTANCE TEST WARNING: Animation already running! ID=${this.animationId}`);
       cancelAnimationFrame(this.animationId);
-      console.log('✅ ACCEPTANCE TEST: Stale animation frame canceled');
+      this.animationId = null;
     }
     
     this.gameLoop();
-    console.log(`✅ ACCEPTANCE TEST: Game loop started with ID: ${this.animationId}`);
   }
 
   public stop() {
@@ -190,11 +186,6 @@ export class GameEngine {
   }
 
   private gameLoop = () => {
-    // ACCEPTANCE TEST: Verify single loop per frame
-    if (this.animationId !== null) {
-      console.log(`🔍 ACCEPTANCE TEST: Frame loop detected, animationId=${this.animationId}`);
-    }
-    
     this.update();
     this.draw();
     this.animationId = requestAnimationFrame(this.gameLoop);
