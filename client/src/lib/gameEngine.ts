@@ -86,11 +86,7 @@ export class GameEngine {
   private onGameOver: () => void;
   private onLevelUp?: (level: number) => void;
 
-  // Game constants - Level 1 balanced for snappy-but-fair experience
-  private readonly GRAVITY = 0.38;          // Snappy-but-fair gravity
-  private readonly FLAP_STRENGTH = -6.2;    // Balanced flap strength
-  private readonly OBSTACLE_SPEED = 2.6;    // Snappy-but-fair speed
-  private readonly OBSTACLE_GAP = 170;      // ~28% height gap
+  // Legacy constants - kept for reference but not used (dynamic DIFFICULTY map takes precedence)
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -416,7 +412,6 @@ export class GameEngine {
     const dynamicGap = this.getCurrentObstacleGap();
     const gapStart = Math.random() * (this.canvas.height - dynamicGap - 200) + 100;
     this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, dynamicGap, this.canvas.height));
-    console.log(`🌲 Obstacle spawned: gap=${dynamicGap}px, level=${this.currentLevel}`);
   }
 
   private checkCollision(turkey: Turkey, obstacle: Obstacle): boolean {
@@ -589,13 +584,11 @@ export class GameEngine {
   // Difficulty progression methods using DIFFICULTY map
   private getObstacleSpeed(): number {
     const difficulty = this.getDifficultySettings();
-    console.log(`🎯 Level ${this.currentLevel}: Using obstacle speed ${difficulty.obstacleSpeed}`);
     return difficulty.obstacleSpeed;
   }
 
   private getObstacleSpawnInterval(): number {
     const difficulty = this.getDifficultySettings();
-    console.log(`⏰ Level ${this.currentLevel}: Using spawn interval ${difficulty.spawnInterval}ms`);
     return difficulty.spawnInterval;
   }
 
