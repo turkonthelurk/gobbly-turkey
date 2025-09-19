@@ -32,7 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name, handle, score } = req.body;
       
-      if (!score || typeof score !== "number" || score < 0 || score > 1000000) {
+      if (typeof score !== "number" || isNaN(score) || score < 0 || score > 1000000) {
         return res.status(400).json({ error: "Valid score is required (0-1,000,000)" });
       }
       
