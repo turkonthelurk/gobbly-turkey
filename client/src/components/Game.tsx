@@ -40,15 +40,29 @@ const Game = () => {
   }, [score, highScore]);
 
   const handleScoreIncrease = () => {
-    setScore(prev => prev + 1);
+    setScore(prev => {
+      const newScore = prev + 1;
+      // Check for level progression on next frame to avoid state update conflicts
+      setTimeout(() => {
+        const newLevel = Math.floor(newScore / 10) + 1;
+        if (newLevel > level) {
+          setLevel(newLevel);
+          console.log(`🎉 LEVEL UP! Welcome to Level ${newLevel}!`);
+          
+          if (newLevel === 2) {
+            console.log('🎯 You reached Level 2! The game is getting faster!');
+          } else if (newLevel === 3) {
+            console.log('🔥 Level 3 achieved! Expert mode activated!');
+          } else if (newLevel >= 5) {
+            console.log('👑 Master level reached! You are a Gobbly Turkey champion!');
+          }
+        }
+      }, 0);
+      return newScore;
+    });
     playSuccess();
   };
 
-  const handleLevelUp = (newLevel: number) => {
-    setLevel(newLevel);
-    console.log(`🎉 Level ${newLevel} reached!`);
-    // Could add special level-up sound effect here
-  };
 
   const handleGameOver = () => {
     playHit();
@@ -72,7 +86,7 @@ const Game = () => {
       <GameCanvas 
         onScoreIncrease={handleScoreIncrease}
         onGameOver={handleGameOver}
-        onLevelUp={handleLevelUp}
+        currentLevel={level}
         gamePhase={phase}
         onStart={start}
         onFlap={playFlap}
