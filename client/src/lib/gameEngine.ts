@@ -86,6 +86,7 @@ export class GameEngine {
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
   private onLevelUp?: (level: number) => void;
+  private onPowerUpCollected?: (type: PowerUpType) => void;
 
   // Legacy constants - kept for reference but not used (dynamic DIFFICULTY map takes precedence)
 
@@ -94,13 +95,15 @@ export class GameEngine {
     ctx: CanvasRenderingContext2D,
     onScoreIncrease: () => void,
     onGameOver: () => void,
-    onLevelUp?: (level: number) => void
+    onLevelUp?: (level: number) => void,
+    onPowerUpCollected?: (type: PowerUpType) => void
   ) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.onScoreIncrease = onScoreIncrease;
     this.onGameOver = onGameOver;
     this.onLevelUp = onLevelUp;
+    this.onPowerUpCollected = onPowerUpCollected;
     
     // Initialize turkey
     this.turkey = new Turkey(100, canvas.height / 2);
@@ -270,6 +273,8 @@ export class GameEngine {
           // Consume the shield and add temporary invulnerability
           this.shieldActive = false;
           this.invulnerabilityEndTime = currentTime + 500; // 500ms grace period
+          // Remove shield from active power-ups when consumed
+          this.activePowerUps.delete('turkey_feather');
           continue; // Continue processing other obstacles instead of stopping the entire update
         } else if (isInvincible || isPostShieldInvulnerable) {
           // Invincible, no damage taken
@@ -322,30 +327,55 @@ export class GameEngine {
   }
 
   private drawDistantTrees() {
-    // Draw silhouettes of distant trees for depth
-    this.ctx.fillStyle = 'rgba(139, 69, 19, 0.3)'; // Semi-transparent brown
+    // Draw silhouettes of distant trees with parallax scrolling
+    const elapsed = (Date.now() - this.startTime) / 1000;
+    const baseSpeed = this.getObstacleSpeed() * 0.15; // Much slower than obstacles for depth
     
-    const trees = [
-      { x: 80, height: 60 },
-      { x: 150, height: 45 },
-      { x: 220, height: 70 },
-      { x: 290, height: 55 },
-      { x: 350, height: 40 },
+    // Multiple tree layers with different parallax speeds
+    const treeLayers = [
+      {
+        trees: [
+          { baseX: 80, height: 60 },
+          { baseX: 220, height: 70 },
+          { baseX: 360, height: 55 },
+          { baseX: 500, height: 65 },
+        ],
+        speed: baseSpeed * 0.3,
+        alpha: 0.2
+      },
+      {
+        trees: [
+          { baseX: 150, height: 45 },
+          { baseX: 290, height: 55 },
+          { baseX: 430, height: 40 },
+          { baseX: 570, height: 50 },
+        ],
+        speed: baseSpeed * 0.6,
+        alpha: 0.3
+      }
     ];
 
-    trees.forEach(tree => {
-      const baseY = this.canvas.height - 50; // Above ground level
+    treeLayers.forEach(layer => {
+      this.ctx.fillStyle = `rgba(139, 69, 19, ${layer.alpha})`;
       
-      // Tree trunk
-      this.ctx.fillRect(tree.x - 3, baseY - tree.height, 6, tree.height);
-      
-      // Tree foliage (simple triangle)
-      this.ctx.beginPath();
-      this.ctx.moveTo(tree.x, baseY - tree.height - 15);
-      this.ctx.lineTo(tree.x - 15, baseY - tree.height + 10);
-      this.ctx.lineTo(tree.x + 15, baseY - tree.height + 10);
-      this.ctx.closePath();
-      this.ctx.fill();
+      layer.trees.forEach(tree => {
+        // Calculate scrolling position with wrapping
+        let x = (tree.baseX - (elapsed * layer.speed)) % (this.canvas.width + 200);
+        if (x < -100) x += this.canvas.width + 200;
+        
+        const baseY = this.canvas.height - 50; // Above ground level
+        
+        // Tree trunk
+        this.ctx.fillRect(x - 3, baseY - tree.height, 6, tree.height);
+        
+        // Tree foliage (simple triangle)
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, baseY - tree.height - 15);
+        this.ctx.lineTo(x - 15, baseY - tree.height + 10);
+        this.ctx.lineTo(x + 15, baseY - tree.height + 10);
+        this.ctx.closePath();
+        this.ctx.fill();
+      });
     });
   }
 
@@ -400,13 +430,35 @@ export class GameEngine {
 
   private drawGround() {
     const groundHeight = 50;
-    this.ctx.fillStyle = '#8B4513'; // Brown ground
+    const elapsed = (Date.now() - this.startTime) / 1000;
+    const groundScrollSpeed = this.getObstacleSpeed() * 0.8; // Tied to obstacle speed
+    
+    // Brown ground base
+    this.ctx.fillStyle = '#8B4513';
     this.ctx.fillRect(0, this.canvas.height - groundHeight, this.canvas.width, groundHeight);
     
-    // Add some grass texture
+    // Scrolling grass texture pattern
     this.ctx.fillStyle = '#228B22';
-    for (let x = 0; x < this.canvas.width; x += 20) {
-      this.ctx.fillRect(x, this.canvas.height - groundHeight, 15, 10);
+    const grassPatternWidth = 20;
+    const scrollOffset = (elapsed * groundScrollSpeed) % grassPatternWidth;
+    
+    // Draw repeating grass blades that scroll left
+    for (let x = -grassPatternWidth; x < this.canvas.width + grassPatternWidth; x += grassPatternWidth) {
+      const adjustedX = x - scrollOffset;
+      
+      // Grass blade pattern
+      this.ctx.fillRect(adjustedX, this.canvas.height - groundHeight, 15, 12);
+      this.ctx.fillRect(adjustedX + 5, this.canvas.height - groundHeight + 3, 8, 8);
+      this.ctx.fillRect(adjustedX + 12, this.canvas.height - groundHeight + 1, 6, 10);
+    }
+    
+    // Add subtle ground texture details
+    this.ctx.fillStyle = 'rgba(160, 82, 45, 0.3)';
+    const detailOffset = (elapsed * groundScrollSpeed * 0.5) % 30;
+    for (let x = -30; x < this.canvas.width + 30; x += 30) {
+      const adjustedX = x - detailOffset;
+      this.ctx.fillRect(adjustedX, this.canvas.height - 20, 20, 3);
+      this.ctx.fillRect(adjustedX + 10, this.canvas.height - 15, 12, 2);
     }
   }
 
@@ -549,6 +601,11 @@ export class GameEngine {
   private collectPowerUp(powerUp: PowerUp, currentTime: number) {
     const effect = powerUp.getEffect();
     
+    // Notify UI of power-up collection for feedback
+    if (this.onPowerUpCollected) {
+      this.onPowerUpCollected(effect.type);
+    }
+    
     
     switch (effect.type) {
       case 'pumpkin':
@@ -578,6 +635,11 @@ export class GameEngine {
       case 'turkey_feather':
         // Instant shield - protects from one collision
         this.shieldActive = true;
+        // Add to active power-ups for UI display (no duration, expires when used)
+        this.activePowerUps.set('turkey_feather', {
+          effect,
+          endTime: Number.MAX_SAFE_INTEGER // Visible until consumed
+        });
         break;
     }
   }
@@ -659,7 +721,8 @@ export class GameEngine {
     const activePowerUps: Array<{ type: PowerUpType; endTime: number; effect: PowerUpEffect }> = [];
     
     this.activePowerUps.forEach((powerUpData, type) => {
-      if (currentTime < powerUpData.endTime) {
+      // Show turkey_feather until consumed or other power-ups until expired
+      if (type === 'turkey_feather' || currentTime < powerUpData.endTime) {
         activePowerUps.push({
           type,
           endTime: powerUpData.endTime,

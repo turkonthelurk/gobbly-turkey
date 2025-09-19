@@ -7,6 +7,7 @@ interface GameCanvasProps {
   onGameOver: () => void;
   onLevelUp: (level: number) => void;
   onPowerUpsUpdate: (powerUps: Array<{ type: string; endTime: number; effect: any }>) => void;
+  onPowerUpCollected: (type: string) => void;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
@@ -18,6 +19,7 @@ const GameCanvas = ({
   onGameOver,
   onLevelUp,
   onPowerUpsUpdate,
+  onPowerUpCollected,
   gamePhase,
   onStart,
   onFlap,
@@ -84,6 +86,7 @@ const GameCanvas = ({
       onScoreIncrease,
       onGameOver,
       onLevelUp,
+      onPowerUpCollected,
     );
 
     console.log('🎮 Game engine created');
