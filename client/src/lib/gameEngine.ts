@@ -110,6 +110,8 @@ export class GameEngine {
     this.gameState = state;
     if (state === 'ready') {
       this.reset();
+      // Restart the game loop after reset to ensure continuous rendering
+      this.start();
     }
   }
 
