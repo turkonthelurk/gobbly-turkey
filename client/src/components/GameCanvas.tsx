@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { GameEngine } from "../lib/gameEngine.ts";
 import { GamePhase } from "../lib/stores/useGame";
+import { createGameActionDispatcher } from "../lib/input";
 
 interface GameCanvasProps {
   onScoreIncrease: () => void;
@@ -40,35 +41,31 @@ const GameCanvas = ({
   const onFlapRef = useRef(onFlap);
   const onRestartRef = useRef(onRestart);
 
-  // Stable event handlers using refs (no dependencies)
+  // Create unified game action dispatcher
+  const dispatchAction = createGameActionDispatcher(
+    gamePhaseRef,
+    gameEngineRef,
+    {
+      onStart: () => onStartRef.current(),
+      onFlap: () => onFlapRef.current(),
+      onRestart: () => onRestartRef.current(),
+    }
+  );
+
+  // Stable event handlers using unified dispatcher
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "Space") {
         event.preventDefault();
-
-        if (gamePhaseRef.current === "ready") {
-          onStartRef.current();
-        } else if (gamePhaseRef.current === "playing" && gameEngineRef.current) {
-          gameEngineRef.current.flap();
-          onFlapRef.current();
-        } else if (gamePhaseRef.current === "ended") {
-          onRestartRef.current();
-        }
+        dispatchAction();
       }
     },
-    [], // No dependencies - fully stable
+    [dispatchAction],
   );
 
   const handleClick = useCallback(() => {
-    if (gamePhaseRef.current === "ready") {
-      onStartRef.current();
-    } else if (gamePhaseRef.current === "playing" && gameEngineRef.current) {
-      gameEngineRef.current.flap();
-      onFlapRef.current();
-    } else if (gamePhaseRef.current === "ended") {
-      onRestartRef.current();
-    }
-  }, []); // No dependencies - fully stable
+    dispatchAction();
+  }, [dispatchAction]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
