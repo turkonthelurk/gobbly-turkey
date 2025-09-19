@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import GameCanvas from "./GameCanvas.tsx";
 import GameUI from "./GameUI.tsx";
+import { Leaderboard } from "./Leaderboard.tsx";
+import { ScoreSubmissionForm } from "./ScoreSubmissionForm.tsx";
 import { useGame } from "../lib/stores/useGame";
 import { useAudio } from "../lib/stores/useAudio";
 
@@ -24,6 +26,11 @@ const Game = () => {
   });
   const [activePowerUps, setActivePowerUps] = useState<Array<{ type: string; endTime: number; effect: any }>>([]);
   const [collectionFeedback, setCollectionFeedback] = useState<{ type: string; timestamp: number } | null>(null);
+  
+  // Leaderboard state
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showScoreSubmission, setShowScoreSubmission] = useState(false);
+  const [gameOverScore, setGameOverScore] = useState(0);
 
   // Initialize audio when component mounts
   useEffect(() => {
@@ -74,13 +81,47 @@ const Game = () => {
 
   const handleGameOver = useCallback(() => {
     playHit();
-  }, [playHit]);
+    setGameOverScore(score);
+    // Show score submission form after a brief delay
+    setTimeout(() => {
+      setShowScoreSubmission(true);
+    }, 1000);
+  }, [playHit, score]);
 
   const handleRestart = useCallback(() => {
     setScore(0);
     setLevel(1);
+    setShowScoreSubmission(false);
+    setShowLeaderboard(false);
+    setGameOverScore(0);
     restart();
   }, [restart]);
+
+  const handleSubmitScore = useCallback(async (data: { name?: string; handle?: string; score: number }) => {
+    try {
+      const response = await fetch('/api/scores', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit score');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error submitting score:', error);
+      throw error;
+    }
+  }, []);
+
+  const handleViewLeaderboard = useCallback(() => {
+    setShowScoreSubmission(false);
+    setShowLeaderboard(true);
+  }, []);
 
   return (
     <div
@@ -115,6 +156,21 @@ const Game = () => {
         onStart={start}
         onToggleMute={toggleMute}
         isMuted={isMuted}
+        onViewLeaderboard={() => setShowLeaderboard(true)}
+      />
+      
+      <ScoreSubmissionForm
+        isOpen={showScoreSubmission}
+        onClose={() => setShowScoreSubmission(false)}
+        onSubmit={handleSubmitScore}
+        score={gameOverScore}
+        onViewLeaderboard={handleViewLeaderboard}
+      />
+      
+      <Leaderboard
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        currentScore={gameOverScore > 0 ? gameOverScore : undefined}
       />
     </div>
   );
