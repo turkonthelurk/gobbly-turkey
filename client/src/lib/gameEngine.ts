@@ -250,10 +250,10 @@ export class GameEngine {
           // Consume the shield and add temporary invulnerability
           this.shieldActive = false;
           this.invulnerabilityEndTime = currentTime + 500; // 500ms grace period
-          return;
+          continue; // Continue processing other obstacles instead of stopping the entire update
         } else if (isInvincible || isPostShieldInvulnerable) {
           // Invincible, no damage taken
-          return;
+          continue; // Continue processing other obstacles instead of stopping the entire update
         } else {
           // No protection, end game
           this.endGame();
