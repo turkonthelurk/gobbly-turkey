@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { SocialShareModal } from './SocialShareModal';
+import { SocialShareModal } from './SocialShareModal.tsx';
 
 interface Score {
   id: number;
