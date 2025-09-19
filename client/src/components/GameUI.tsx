@@ -11,6 +11,7 @@ interface GameUIProps {
   onStart: () => void;
   onToggleMute: () => void;
   isMuted: boolean;
+  onViewLeaderboard: () => void;
 }
 
 const GameUI = ({
@@ -24,6 +25,7 @@ const GameUI = ({
   onStart,
   onToggleMute,
   isMuted,
+  onViewLeaderboard,
 }: GameUIProps) => {
   if (gamePhase === "playing") {
     return (
@@ -215,20 +217,36 @@ const GameUI = ({
         <div style={{ fontSize: "12px", marginBottom: "10px" }}>
           High Score: {highScore}
         </div>
-        <button
-          onClick={onStart}
-          style={{
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: "12px",
-            padding: "10px 20px",
-            backgroundColor: "#A0522D",
-            color: "#FFFFFF",
-            border: "2px solid #8B4513",
-            cursor: "pointer",
-          }}
-        >
-          START GAME
-        </button>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          <button
+            onClick={onStart}
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "12px",
+              padding: "10px 20px",
+              backgroundColor: "#A0522D",
+              color: "#FFFFFF",
+              border: "2px solid #8B4513",
+              cursor: "pointer",
+            }}
+          >
+            START GAME
+          </button>
+          <button
+            onClick={onViewLeaderboard}
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "12px",
+              padding: "10px 20px",
+              backgroundColor: "#FFD700",
+              color: "#8B4513",
+              border: "2px solid #8B4513",
+              cursor: "pointer",
+            }}
+          >
+            🏆 LEADERBOARD
+          </button>
+        </div>
       </div>
     );
   }
@@ -259,21 +277,37 @@ const GameUI = ({
         </div>
         <div style={{ marginBottom: "10px" }}>Turkeys Saved: {score}</div>
         <div style={{ marginBottom: "20px" }}>High Score: {highScore}</div>
-        <button
-          onClick={onRestart}
-          style={{
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: "12px",
-            padding: "10px 20px",
-            backgroundColor: "#A0522D",
-            color: "#FFFFFF",
-            border: "2px solid #8B4513",
-            cursor: "pointer",
-          }}
-        >
-          TRY AGAIN
-        </button>
-        <div style={{ fontSize: "10px", marginTop: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "10px" }}>
+          <button
+            onClick={onRestart}
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "12px",
+              padding: "10px 20px",
+              backgroundColor: "#A0522D",
+              color: "#FFFFFF",
+              border: "2px solid #8B4513",
+              cursor: "pointer",
+            }}
+          >
+            TRY AGAIN
+          </button>
+          <button
+            onClick={onViewLeaderboard}
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "12px",
+              padding: "10px 20px",
+              backgroundColor: "#FFD700",
+              color: "#8B4513",
+              border: "2px solid #8B4513",
+              cursor: "pointer",
+            }}
+          >
+            🏆 LEADERBOARD
+          </button>
+        </div>
+        <div style={{ fontSize: "10px", marginTop: "5px" }}>
           Press SPACE or CLICK to restart
         </div>
       </div>
