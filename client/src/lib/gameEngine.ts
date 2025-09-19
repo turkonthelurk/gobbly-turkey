@@ -20,8 +20,13 @@ export class GameEngine {
   private startTime = Date.now(); // Track animation time
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
+  private currentScore = 0; // Track current score for difficulty scaling
+  private currentLevel = 1; // Track current level
+  private baseObstacleSpeed = 2; // Base obstacle speed
+  private baseObstacleInterval = 2000; // Base obstacle spawn interval
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
+  private onLevelUp?: (level: number) => void;
 
   // Game constants
   private readonly GRAVITY = 0.5;
@@ -33,12 +38,14 @@ export class GameEngine {
     canvas: HTMLCanvasElement,
     ctx: CanvasRenderingContext2D,
     onScoreIncrease: () => void,
-    onGameOver: () => void
+    onGameOver: () => void,
+    onLevelUp?: (level: number) => void
   ) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.onScoreIncrease = onScoreIncrease;
     this.onGameOver = onGameOver;
+    this.onLevelUp = onLevelUp;
     
     // Initialize turkey
     this.turkey = new Turkey(100, canvas.height / 2);
@@ -76,6 +83,8 @@ export class GameEngine {
     this.activePowerUps.clear();
     this.shieldActive = false;
     this.invulnerabilityEndTime = 0;
+    this.currentScore = 0;
+    this.currentLevel = 1;
     this.lastObstacleTime = 0;
     this.lastLeafSpawnTime = 0;
     this.lastPowerUpSpawnTime = 0;
@@ -116,16 +125,18 @@ export class GameEngine {
     // Update power-ups
     this.updatePowerUps(currentTime);
 
-    // Spawn obstacles
-    if (currentTime - this.lastObstacleTime > this.obstacleSpawnInterval) {
+    // Spawn obstacles with dynamic difficulty
+    const currentObstacleInterval = this.getObstacleSpawnInterval();
+    if (currentTime - this.lastObstacleTime > currentObstacleInterval) {
       this.spawnObstacle();
       this.lastObstacleTime = currentTime;
     }
 
-    // Update obstacles
+    // Update obstacles with dynamic speed
+    const currentObstacleSpeed = this.getObstacleSpeed();
     for (let i = this.obstacles.length - 1; i >= 0; i--) {
       const obstacle = this.obstacles[i];
-      obstacle.update(this.OBSTACLE_SPEED);
+      obstacle.update(currentObstacleSpeed);
 
       // Remove obstacles that are off screen
       if (obstacle.x + obstacle.width < 0) {
@@ -141,13 +152,18 @@ export class GameEngine {
         const acornEffect = this.activePowerUps.get('acorn');
         if (acornEffect && currentTime < acornEffect.endTime) {
           // Give double points
+          this.currentScore += 2;
           this.onScoreIncrease();
           this.onScoreIncrease();
           console.log('Double points from acorn power-up!');
         } else {
           // Normal single point
+          this.currentScore += 1;
           this.onScoreIncrease();
         }
+        
+        // Check for level progression
+        this.checkLevelProgression();
       }
 
       // Check collisions
@@ -476,5 +492,63 @@ export class GameEngine {
         this.shieldActive = true;
         break;
     }
+  }
+
+  // Difficulty progression methods
+  private getObstacleSpeed(): number {
+    // Increase speed based on level: base speed + 0.3 per level after 1
+    const speedIncrease = (this.currentLevel - 1) * 0.3;
+    return Math.min(this.baseObstacleSpeed + speedIncrease, 5); // Cap at 5
+  }
+
+  private getObstacleSpawnInterval(): number {
+    // Decrease spawn interval based on level: faster spawning as level increases
+    const intervalDecrease = (this.currentLevel - 1) * 150;
+    return Math.max(this.baseObstacleInterval - intervalDecrease, 800); // Cap at 800ms minimum
+  }
+
+  private checkLevelProgression() {
+    // Level up every 10 points: Level 1 (0-9), Level 2 (10-19), etc.
+    const newLevel = Math.floor(this.currentScore / 10) + 1;
+    
+    if (newLevel > this.currentLevel) {
+      const oldLevel = this.currentLevel;
+      this.currentLevel = newLevel;
+      
+      console.log(`🎉 LEVEL UP! Welcome to Level ${this.currentLevel}!`);
+      console.log(`Difficulty increased: Speed ${this.getObstacleSpeed()}, Spawn rate ${this.getObstacleSpawnInterval()}ms`);
+      
+      // Notify the UI about level progression
+      if (this.onLevelUp) {
+        this.onLevelUp(this.currentLevel);
+      }
+      
+      // Optional: Add visual effects or special rewards for leveling up
+      if (this.currentLevel === 2) {
+        console.log('🎯 You reached Level 2! The game is getting faster!');
+      } else if (this.currentLevel === 3) {
+        console.log('🔥 Level 3 achieved! Expert mode activated!');
+      } else if (this.currentLevel >= 5) {
+        console.log('👑 Master level reached! You are a Gobbly Turkey champion!');
+      }
+    }
+  }
+
+  // Getter methods for current game stats
+  public getCurrentLevel(): number {
+    return this.currentLevel;
+  }
+
+  public getCurrentScore(): number {
+    return this.currentScore;
+  }
+
+  public getDifficultyStats() {
+    return {
+      level: this.currentLevel,
+      score: this.currentScore,
+      obstacleSpeed: this.getObstacleSpeed(),
+      spawnInterval: this.getObstacleSpawnInterval()
+    };
   }
 }
