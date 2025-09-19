@@ -25,7 +25,6 @@ export class GameEngine {
     onScoreIncrease: () => void,
     onGameOver: () => void
   ) {
-    console.log("GameEngine initialized with canvas:", canvas.width, "x", canvas.height);
     this.canvas = canvas;
     this.ctx = ctx;
     this.onScoreIncrease = onScoreIncrease;
@@ -33,7 +32,6 @@ export class GameEngine {
     
     // Initialize turkey
     this.turkey = new Turkey(100, canvas.height / 2);
-    console.log("Turkey initialized at:", this.turkey.x, this.turkey.y);
   }
 
   public setGameState(state: GamePhase) {
@@ -132,9 +130,6 @@ export class GameEngine {
 
     // Draw turkey
     this.turkey.draw(this.ctx);
-    
-    // Log turkey position for debugging
-    console.log(`Drawing turkey at position (${Math.round(this.turkey.x)}, ${Math.round(this.turkey.y)}) in state: ${this.gameState}`);
 
     // Draw ground
     this.drawGround();
