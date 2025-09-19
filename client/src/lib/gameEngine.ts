@@ -1,15 +1,18 @@
 import { GamePhase } from "./stores/useGame";
-import { Turkey, Obstacle } from "./sprites.ts";
+import { Turkey, Obstacle, LeafParticle } from "./sprites.ts";
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private turkey: Turkey;
   private obstacles: Obstacle[] = [];
+  private leafParticles: LeafParticle[] = [];
   private gameState: GamePhase = 'ready';
   private animationId: number | null = null;
   private lastObstacleTime = 0;
   private obstacleSpawnInterval = 2000; // 2 seconds
+  private lastLeafSpawnTime = 0;
+  private leafSpawnInterval = 300; // Spawn leaves every 300ms
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
 
@@ -61,7 +64,9 @@ export class GameEngine {
   private reset() {
     this.turkey = new Turkey(100, this.canvas.height / 2);
     this.obstacles = [];
+    this.leafParticles = [];
     this.lastObstacleTime = 0;
+    this.lastLeafSpawnTime = 0;
   }
 
   private gameLoop = () => {
@@ -83,6 +88,9 @@ export class GameEngine {
         return;
       }
     }
+
+    // Always update and spawn leaves (even when not playing for atmospheric effect)
+    this.updateLeafParticles(currentTime);
 
     if (this.gameState !== 'playing') return;
 
@@ -124,6 +132,9 @@ export class GameEngine {
 
     // Draw clouds (simple decorative elements)
     this.drawClouds();
+
+    // Draw leaf particles in background
+    this.leafParticles.forEach(leaf => leaf.draw(this.ctx));
 
     // Draw obstacles
     this.obstacles.forEach(obstacle => obstacle.draw(this.ctx));
@@ -216,6 +227,37 @@ export class GameEngine {
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
            rect1.y + rect1.height > rect2.y;
+  }
+
+  private updateLeafParticles(currentTime: number) {
+    // Spawn new leaf particles
+    if (currentTime - this.lastLeafSpawnTime > this.leafSpawnInterval) {
+      // Spawn 1-2 leaves at a time
+      const numLeaves = Math.random() > 0.5 ? 1 : 2;
+      for (let i = 0; i < numLeaves; i++) {
+        const x = Math.random() * (this.canvas.width + 50) - 25; // Start from random X position
+        const y = -10; // Start above canvas
+        this.leafParticles.push(new LeafParticle(x, y));
+      }
+      this.lastLeafSpawnTime = currentTime;
+    }
+
+    // Update existing leaf particles
+    for (let i = this.leafParticles.length - 1; i >= 0; i--) {
+      const leaf = this.leafParticles[i];
+      leaf.update();
+
+      // Remove off-screen leaves
+      if (leaf.isOffScreen(this.canvas.width, this.canvas.height)) {
+        this.leafParticles.splice(i, 1);
+      }
+    }
+
+    // Limit maximum number of particles for performance
+    const maxParticles = 50;
+    if (this.leafParticles.length > maxParticles) {
+      this.leafParticles.splice(0, this.leafParticles.length - maxParticles);
+    }
   }
 
   private endGame() {

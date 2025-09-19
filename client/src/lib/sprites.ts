@@ -157,3 +157,86 @@ export class Obstacle {
     }
   }
 }
+
+// Autumn leaf particle for atmospheric effects
+export class LeafParticle {
+  public x: number;
+  public y: number;
+  public vx: number; // horizontal velocity
+  public vy: number; // vertical velocity
+  public rotation: number;
+  public rotationSpeed: number;
+  public size: number;
+  public color: string;
+  public alpha: number;
+  
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+    
+    // Random horizontal drift
+    this.vx = (Math.random() - 0.5) * 0.5;
+    
+    // Falling speed with variation
+    this.vy = 0.5 + Math.random() * 1.5;
+    
+    // Random rotation and rotation speed
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+    
+    // Random size and color
+    this.size = 3 + Math.random() * 4;
+    this.alpha = 0.6 + Math.random() * 0.4;
+    
+    // Autumn leaf colors
+    const colors = ['#8B4513', '#CD853F', '#D2691E', '#FF8C42', '#FF6347'];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+  
+  public update() {
+    // Move the leaf
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    // Rotate the leaf
+    this.rotation += this.rotationSpeed;
+    
+    // Add some swaying motion
+    this.vx += (Math.random() - 0.5) * 0.02;
+    this.vx *= 0.99; // Damping
+  }
+  
+  public draw(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    
+    // Set alpha for transparency
+    ctx.globalAlpha = this.alpha;
+    
+    // Move to leaf position and rotate
+    ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+    ctx.rotate(this.rotation);
+    
+    // Draw simple leaf shape (oval)
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size / 2, this.size, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Add a simple stem
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.size / 2);
+    ctx.lineTo(0, this.size / 2);
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  // Check if leaf is off screen
+  public isOffScreen(canvasWidth: number, canvasHeight: number): boolean {
+    return this.y > canvasHeight + this.size || 
+           this.x < -this.size || 
+           this.x > canvasWidth + this.size;
+  }
+}
