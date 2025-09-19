@@ -5,13 +5,13 @@ import { GamePhase } from "../lib/stores/useGame";
 interface GameCanvasProps {
   onScoreIncrease: () => void;
   onGameOver: () => void;
-  onLevelUp: (level: number) => void;
+  currentLevel: number;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
 }
 
-const GameCanvas = ({ onScoreIncrease, onGameOver, onLevelUp, gamePhase, onStart, onFlap }: GameCanvasProps) => {
+const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onStart, onFlap }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
 
@@ -53,8 +53,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, onLevelUp, gamePhase, onStart
       canvas,
       ctx,
       onScoreIncrease,
-      onGameOver,
-      onLevelUp
+      onGameOver
     );
 
     // Start game loop
@@ -71,7 +70,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, onLevelUp, gamePhase, onStart
       document.removeEventListener('keydown', handleKeyDown);
       canvas.removeEventListener('click', handleClick);
     };
-  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver, onLevelUp]);
+  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
 
   // Handle game state changes
   useEffect(() => {
@@ -79,6 +78,13 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, onLevelUp, gamePhase, onStart
       gameEngineRef.current.setGameState(gamePhase);
     }
   }, [gamePhase]);
+
+  // Sync level with game engine
+  useEffect(() => {
+    if (gameEngineRef.current) {
+      gameEngineRef.current.setCurrentLevel(currentLevel);
+    }
+  }, [currentLevel]);
 
   return (
     <canvas
