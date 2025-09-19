@@ -123,7 +123,17 @@ export class GameEngine {
   }
 
   public start() {
+    console.log('🎮 ACCEPTANCE TEST: Game loop starting...');
+    console.log(`🔍 ACCEPTANCE TEST: Animation ID before start: ${this.animationId}`);
+    
+    if (this.animationId !== null) {
+      console.warn(`⚠️ ACCEPTANCE TEST WARNING: Animation already running! ID=${this.animationId}`);
+      cancelAnimationFrame(this.animationId);
+      console.log('✅ ACCEPTANCE TEST: Stale animation frame canceled');
+    }
+    
     this.gameLoop();
+    console.log(`✅ ACCEPTANCE TEST: Game loop started with ID: ${this.animationId}`);
   }
 
   public stop() {
@@ -180,6 +190,11 @@ export class GameEngine {
   }
 
   private gameLoop = () => {
+    // ACCEPTANCE TEST: Verify single loop per frame
+    if (this.animationId !== null) {
+      console.log(`🔍 ACCEPTANCE TEST: Frame loop detected, animationId=${this.animationId}`);
+    }
+    
     this.update();
     this.draw();
     this.animationId = requestAnimationFrame(this.gameLoop);
