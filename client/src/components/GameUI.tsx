@@ -5,6 +5,7 @@ interface GameUIProps {
   level: number;
   highScore: number;
   gamePhase: GamePhase;
+  activePowerUps: Array<{ type: string; endTime: number; effect: any }>;
   onRestart: () => void;
   onStart: () => void;
   onToggleMute: () => void;
@@ -16,6 +17,7 @@ const GameUI = ({
   level,
   highScore,
   gamePhase,
+  activePowerUps,
   onRestart,
   onStart,
   onToggleMute,
@@ -60,6 +62,73 @@ const GameUI = ({
         >
           {isMuted ? "🔇" : "🔊"}
         </button>
+        
+        {/* Power-Up HUD */}
+        {activePowerUps.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: "80px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            {activePowerUps.map((powerUp) => {
+              const timeLeft = Math.max(0, powerUp.endTime - Date.now()) / 1000;
+              const getIcon = (type: string) => {
+                switch (type) {
+                  case 'pumpkin': return '🎃';
+                  case 'acorn': return '🌰';
+                  case 'maple_leaf': return '🍁';
+                  case 'turkey_feather': return '🪶';
+                  default: return '⭐';
+                }
+              };
+              
+              const getLabel = (type: string) => {
+                switch (type) {
+                  case 'pumpkin': return 'Shield';
+                  case 'acorn': return '2x Points';
+                  case 'maple_leaf': return 'Light';
+                  case 'turkey_feather': return 'Protect';
+                  default: return 'Power';
+                }
+              };
+
+              return (
+                <div
+                  key={`${powerUp.type}-${powerUp.endTime}`}
+                  style={{
+                    backgroundColor: "rgba(0, 0, 0, 0.8)",
+                    color: "#FFFFFF",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    fontSize: "10px",
+                    fontFamily: "'Press Start 2P', monospace",
+                    textAlign: "center",
+                    border: "2px solid #FFD700",
+                    boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)",
+                    animation: timeLeft < 2 ? "blink 0.5s infinite" : "none",
+                  }}
+                >
+                  <div style={{ fontSize: "16px", marginBottom: "4px" }}>
+                    {getIcon(powerUp.type)}
+                  </div>
+                  <div style={{ marginBottom: "2px" }}>
+                    {getLabel(powerUp.type)}
+                  </div>
+                  <div style={{ fontSize: "8px" }}>
+                    {timeLeft.toFixed(1)}s
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }

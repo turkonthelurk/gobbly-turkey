@@ -652,4 +652,22 @@ export class GameEngine {
       spawnInterval: this.getObstacleSpawnInterval()
     };
   }
+
+  // Method to get active power-ups for UI display
+  public getActivePowerUps(): Array<{ type: PowerUpType; endTime: number; effect: PowerUpEffect }> {
+    const currentTime = Date.now();
+    const activePowerUps: Array<{ type: PowerUpType; endTime: number; effect: PowerUpEffect }> = [];
+    
+    this.activePowerUps.forEach((powerUpData, type) => {
+      if (currentTime < powerUpData.endTime) {
+        activePowerUps.push({
+          type,
+          endTime: powerUpData.endTime,
+          effect: powerUpData.effect
+        });
+      }
+    });
+    
+    return activePowerUps;
+  }
 }
