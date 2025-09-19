@@ -1,64 +1,9 @@
 import { GamePhase } from "./stores/useGame";
 import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } from "./sprites.ts";
+import { DIFFICULTY_LEVELS, GAME_CONSTANTS, COLORS, AUDIO_CONFIG, type DifficultySettings } from '../constants/difficulty';
 
-// DIFFICULTY map for level progression with easier Level 1
-interface DifficultySettings {
-  level: number;
-  obstacleSpeed: number;
-  spawnInterval: number;
-  gravity: number;
-  flapStrength: number;
-  obstacleGap: number;
-  description: string;
-}
-
-const DIFFICULTY: { [key: number]: DifficultySettings } = {
-  1: {
-    level: 1,
-    obstacleSpeed: 2.6,
-    spawnInterval: 1350,     // Snappy-but-fair: moderate intervals
-    gravity: 0.38,          // Snappy-but-fair: slightly lower gravity
-    flapStrength: -6.2,     // Snappy-but-fair: balanced flap strength
-    obstacleGap: 170,       // Snappy-but-fair: ~28% height gap
-    description: "Beginner Mode - Get your wings ready!"
-  },
-  2: {
-    level: 2,
-    obstacleSpeed: 2.8,
-    spawnInterval: 1400,
-    gravity: 0.45,
-    flapStrength: -8.5,
-    obstacleGap: 170,
-    description: "Apprentice Turkey - Flying higher!"
-  },
-  3: {
-    level: 3,
-    obstacleSpeed: 3.4,
-    spawnInterval: 1200,
-    gravity: 0.5,
-    flapStrength: -8,
-    obstacleGap: 160,
-    description: "Expert Flyer - Mastering the skies!"
-  },
-  4: {
-    level: 4,
-    obstacleSpeed: 4.0,
-    spawnInterval: 1000,
-    gravity: 0.55,
-    flapStrength: -7.5,
-    obstacleGap: 150,
-    description: "Turkey Ace - Challenging the winds!"
-  },
-  5: {
-    level: 5,
-    obstacleSpeed: 4.8,
-    spawnInterval: 900,
-    gravity: 0.6,
-    flapStrength: -7,
-    obstacleGap: 140,
-    description: "Gobble Master - Ultimate turkey champion!"
-  }
-};
+// Use centralized difficulty constants
+const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -73,9 +18,9 @@ export class GameEngine {
   private lastObstacleTime = 0;
   private obstacleSpawnInterval = 1350; // 1.35 seconds for snappy-but-fair Level 1
   private lastLeafSpawnTime = 0;
-  private leafSpawnInterval = 300; // Spawn leaves every 300ms
+  private leafSpawnInterval = GAME_CONSTANTS.LEAF_SPAWN_INTERVAL;
   private lastPowerUpSpawnTime = 0;
-  private powerUpSpawnInterval = 8000; // Spawn power-up every 8 seconds
+  private powerUpSpawnInterval = GAME_CONSTANTS.POWER_UP_SPAWN_INTERVAL;
   private startTime = Date.now(); // Track animation time
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
@@ -107,7 +52,7 @@ export class GameEngine {
     this.onPowerUpCollected = onPowerUpCollected;
     
     // Initialize turkey
-    this.turkey = new Turkey(100, canvas.height / 2);
+    this.turkey = new Turkey(GAME_CONSTANTS.TURKEY_START_X, canvas.height / 2);
     
     // Load grass texture
     this.loadGrassTexture();
@@ -730,8 +675,8 @@ export class GameEngine {
   private incrementScore(): void {
     this.currentScore++;
     
-    // Calculate new level based on score (every 10 points = new level), clamped to max level 5
-    const newLevel = Math.min(5, Math.floor(this.currentScore / 10) + 1);
+    // Calculate new level based on score, clamped to max level
+    const newLevel = Math.min(GAME_CONSTANTS.MAX_LEVEL, Math.floor(this.currentScore / GAME_CONSTANTS.POINTS_PER_LEVEL) + 1);
     
     // Check for level up
     if (newLevel > this.currentLevel) {
