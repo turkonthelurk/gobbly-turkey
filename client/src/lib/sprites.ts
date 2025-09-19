@@ -435,6 +435,7 @@ export class PowerUp {
     return this.x + this.width < 0;
   }
 
+  // @deprecated - Use checkSimpleCollision from lib/collision.ts instead
   public checkCollision(turkey: Turkey): boolean {
     if (this.collected) return false;
     
