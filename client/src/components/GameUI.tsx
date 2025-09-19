@@ -6,9 +6,11 @@ interface GameUIProps {
   gamePhase: GamePhase;
   onRestart: () => void;
   onStart: () => void;
+  onToggleMute: () => void;
+  isMuted: boolean;
 }
 
-const GameUI = ({ score, highScore, gamePhase, onRestart, onStart }: GameUIProps) => {
+const GameUI = ({ score, highScore, gamePhase, onRestart, onStart, onToggleMute, isMuted }: GameUIProps) => {
   if (gamePhase === 'playing') {
     return (
       <div style={{
@@ -27,6 +29,24 @@ const GameUI = ({ score, highScore, gamePhase, onRestart, onStart }: GameUIProps
         <div style={{ marginTop: '10px', fontSize: '12px' }}>
           High Score: {highScore}
         </div>
+        <button
+          onClick={onToggleMute}
+          style={{
+            position: 'absolute',
+            top: '40px',
+            right: '-180px',
+            padding: '5px',
+            backgroundColor: isMuted ? '#DC143C' : '#228B22',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '10px',
+            fontFamily: "'Press Start 2P', monospace"
+          }}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
       </div>
     );
   }
