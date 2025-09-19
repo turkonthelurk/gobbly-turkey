@@ -8,6 +8,7 @@ const Game = () => {
   const { phase, start, restart } = useGame();
   const { playSuccess, playHit, playFlap, initializeAudio, isInitialized, startBackgroundMusic, stopBackgroundMusic, toggleMute, isMuted } = useAudio();
   const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(1);
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem('gobblyTurkeyHighScore') || '0');
   });
@@ -43,12 +44,19 @@ const Game = () => {
     playSuccess();
   };
 
+  const handleLevelUp = (newLevel: number) => {
+    setLevel(newLevel);
+    console.log(`🎉 Level ${newLevel} reached!`);
+    // Could add special level-up sound effect here
+  };
+
   const handleGameOver = () => {
     playHit();
   };
 
   const handleRestart = () => {
     setScore(0);
+    setLevel(1);
     restart();
   };
 
@@ -64,12 +72,14 @@ const Game = () => {
       <GameCanvas 
         onScoreIncrease={handleScoreIncrease}
         onGameOver={handleGameOver}
+        onLevelUp={handleLevelUp}
         gamePhase={phase}
         onStart={start}
         onFlap={playFlap}
       />
       <GameUI 
         score={score}
+        level={level}
         highScore={highScore}
         gamePhase={phase}
         onRestart={handleRestart}

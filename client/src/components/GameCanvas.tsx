@@ -5,12 +5,13 @@ import { GamePhase } from "../lib/stores/useGame";
 interface GameCanvasProps {
   onScoreIncrease: () => void;
   onGameOver: () => void;
+  onLevelUp: (level: number) => void;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
 }
 
-const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }: GameCanvasProps) => {
+const GameCanvas = ({ onScoreIncrease, onGameOver, onLevelUp, gamePhase, onStart, onFlap }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
 
@@ -52,7 +53,8 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }:
       canvas,
       ctx,
       onScoreIncrease,
-      onGameOver
+      onGameOver,
+      onLevelUp
     );
 
     // Start game loop
@@ -69,7 +71,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }:
       document.removeEventListener('keydown', handleKeyDown);
       canvas.removeEventListener('click', handleClick);
     };
-  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
+  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver, onLevelUp]);
 
   // Handle game state changes
   useEffect(() => {

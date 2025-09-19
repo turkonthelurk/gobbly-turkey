@@ -2,6 +2,7 @@ import { GamePhase } from "../lib/stores/useGame";
 
 interface GameUIProps {
   score: number;
+  level: number;
   highScore: number;
   gamePhase: GamePhase;
   onRestart: () => void;
@@ -10,7 +11,7 @@ interface GameUIProps {
   isMuted: boolean;
 }
 
-const GameUI = ({ score, highScore, gamePhase, onRestart, onStart, onToggleMute, isMuted }: GameUIProps) => {
+const GameUI = ({ score, level, highScore, gamePhase, onRestart, onStart, onToggleMute, isMuted }: GameUIProps) => {
   if (gamePhase === 'playing') {
     return (
       <div style={{
@@ -26,7 +27,10 @@ const GameUI = ({ score, highScore, gamePhase, onRestart, onStart, onToggleMute,
         zIndex: 10
       }}>
         <div>Turkeys Saved: {score}</div>
-        <div style={{ marginTop: '10px', fontSize: '12px' }}>
+        <div style={{ marginTop: '8px', fontSize: '12px' }}>
+          Level: {level}
+        </div>
+        <div style={{ marginTop: '8px', fontSize: '12px' }}>
           High Score: {highScore}
         </div>
         <button
