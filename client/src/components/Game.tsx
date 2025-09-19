@@ -69,11 +69,11 @@ const Game = () => {
     playHit();
   }, [playHit]);
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     setScore(0);
     setLevel(1);
     restart();
-  };
+  }, [restart]);
 
   return (
     <div
@@ -93,6 +93,7 @@ const Game = () => {
         gamePhase={phase}
         onStart={start}
         onFlap={playFlap}
+        onRestart={handleRestart}
       />
       <GameUI
         score={score}

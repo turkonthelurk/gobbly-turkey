@@ -9,6 +9,7 @@ interface GameCanvasProps {
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
+  onRestart: () => void;
 }
 
 const GameCanvas = ({
@@ -18,6 +19,7 @@ const GameCanvas = ({
   gamePhase,
   onStart,
   onFlap,
+  onRestart,
 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
@@ -38,13 +40,13 @@ const GameCanvas = ({
           gameEngineRef.current.flap();
           onFlap();
         } else if (gamePhase === "ended") {
-          console.log('🔄 Reloading game');
-          window.location.reload();
+          console.log('🔄 Restarting game');
+          onRestart();
         }
       }
       
     },
-    [gamePhase, onStart, onFlap, onScoreIncrease],
+    [gamePhase, onStart, onFlap, onRestart],
   );
 
   const handleClick = useCallback(() => {
@@ -54,9 +56,9 @@ const GameCanvas = ({
       gameEngineRef.current.flap();
       onFlap();
     } else if (gamePhase === "ended") {
-      window.location.reload();
+      onRestart();
     }
-  }, [gamePhase, onStart]);
+  }, [gamePhase, onStart, onFlap, onRestart]);
 
   useEffect(() => {
     console.log('🎨 GameCanvas initializing...');
