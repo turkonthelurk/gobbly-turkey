@@ -52,29 +52,12 @@ const Game = () => {
   const handleScoreIncrease = () => {
     setScore((prev) => {
       const newScore = prev + 1;
-      console.log(`📈 SCORE UPDATE: ${prev} → ${newScore}`);
 
       // Check for level progression on next frame to avoid state update conflicts
       setTimeout(() => {
         const calculatedLevel = Math.floor(newScore / 10) + 1;
-        console.log(
-          `🔄 LEVEL CHECK: Score=${newScore}, CurrentLevel=${level}, CalculatedLevel=${calculatedLevel}`,
-        );
-
         if (calculatedLevel > level) {
-          console.log(`🚀 TRIGGERING LEVEL UP: ${level} → ${calculatedLevel}`);
           setLevel(calculatedLevel);
-          console.log(`🎉 LEVEL UP! Welcome to Level ${calculatedLevel}!`);
-
-          if (calculatedLevel === 2) {
-            console.log("🎯 You reached Level 2! The game is getting faster!");
-          } else if (calculatedLevel === 3) {
-            console.log("🔥 Level 3 achieved! Expert mode activated!");
-          } else if (calculatedLevel >= 5) {
-            console.log(
-              "👑 Master level reached! You are a Gobbly Turkey champion!",
-            );
-          }
         }
       }, 0);
       return newScore;
