@@ -240,3 +240,209 @@ export class LeafParticle {
            this.x > canvasWidth + this.size;
   }
 }
+
+export type PowerUpType = 'pumpkin' | 'acorn' | 'maple_leaf' | 'turkey_feather';
+
+export interface PowerUpEffect {
+  type: PowerUpType;
+  duration: number; // in milliseconds
+  value: number; // multiplier or effect strength
+}
+
+export class PowerUp {
+  public x: number;
+  public y: number;
+  public width: number = 30;
+  public height: number = 30;
+  public type: PowerUpType;
+  public collected: boolean = false;
+  private animationTime: number = 0;
+  private bobOffset: number = 0;
+
+  constructor(x: number, y: number, type: PowerUpType) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.bobOffset = Math.random() * Math.PI * 2; // Random start phase for bobbing
+  }
+
+  public update() {
+    // Move power-up left with obstacles
+    this.x -= 2;
+    
+    // Add floating bobbing animation
+    this.animationTime += 0.1;
+    this.y += Math.sin(this.animationTime + this.bobOffset) * 0.3;
+  }
+
+  public draw(ctx: CanvasRenderingContext2D) {
+    if (this.collected) return;
+
+    ctx.save();
+    
+    // Add gentle pulsing glow effect
+    const glowIntensity = 0.5 + Math.sin(this.animationTime * 2) * 0.2;
+    ctx.shadowColor = this.getGlowColor();
+    ctx.shadowBlur = 8 * glowIntensity;
+    
+    // Draw power-up based on type
+    this.drawPowerUpShape(ctx);
+    
+    ctx.restore();
+  }
+
+  private drawPowerUpShape(ctx: CanvasRenderingContext2D) {
+    const centerX = this.x + this.width / 2;
+    const centerY = this.y + this.height / 2;
+    const size = this.width / 2;
+
+    switch (this.type) {
+      case 'pumpkin':
+        // Draw pumpkin - orange with vertical lines
+        ctx.fillStyle = '#FF8C42';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, size * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pumpkin lines
+        ctx.strokeStyle = '#D2691E';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 4; i++) {
+          const angle = (i / 4) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY - size * 0.8);
+          ctx.lineTo(centerX, centerY + size * 0.8);
+          ctx.stroke();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(Math.PI / 2);
+          ctx.translate(-centerX, -centerY);
+        }
+        
+        // Pumpkin stem
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(centerX - 3, centerY - size - 8, 6, 10);
+        break;
+
+      case 'acorn':
+        // Draw acorn - brown with cap
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY + 3, size * 0.6, size * 0.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Acorn cap
+        ctx.fillStyle = '#654321';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY - 5, size * 0.7, size * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Cap texture
+        ctx.strokeStyle = '#4A4A4A';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.moveTo(centerX - size * 0.5, centerY - 5 + i * 3);
+          ctx.lineTo(centerX + size * 0.5, centerY - 5 + i * 3);
+          ctx.stroke();
+        }
+        break;
+
+      case 'maple_leaf':
+        // Draw maple leaf - red/orange with pointed shape
+        ctx.fillStyle = '#CD853F';
+        ctx.beginPath();
+        
+        // Simple maple leaf shape using lines
+        const points = [
+          [centerX, centerY - size],
+          [centerX + size * 0.3, centerY - size * 0.5],
+          [centerX + size * 0.8, centerY - size * 0.3],
+          [centerX + size * 0.5, centerY],
+          [centerX + size * 0.8, centerY + size * 0.5],
+          [centerX + size * 0.3, centerY + size * 0.3],
+          [centerX, centerY + size * 0.8],
+          [centerX - size * 0.3, centerY + size * 0.3],
+          [centerX - size * 0.8, centerY + size * 0.5],
+          [centerX - size * 0.5, centerY],
+          [centerX - size * 0.8, centerY - size * 0.3],
+          [centerX - size * 0.3, centerY - size * 0.5],
+        ];
+        
+        ctx.moveTo(points[0][0], points[0][1]);
+        points.forEach(point => ctx.lineTo(point[0], point[1]));
+        ctx.closePath();
+        ctx.fill();
+        
+        // Leaf stem
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX, centerY + size);
+        ctx.stroke();
+        break;
+
+      case 'turkey_feather':
+        // Draw turkey feather - brown and orange striped
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, size * 0.3, size, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Feather stripes
+        ctx.fillStyle = '#CD853F';
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.ellipse(centerX, centerY - size * 0.5 + i * size * 0.3, size * 0.2, size * 0.15, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Feather tip
+        ctx.fillStyle = '#FF8C42';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY - size * 0.7, size * 0.15, size * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+    }
+  }
+
+  private getGlowColor(): string {
+    switch (this.type) {
+      case 'pumpkin': return '#FF8C42';
+      case 'acorn': return '#8B4513';
+      case 'maple_leaf': return '#CD853F';
+      case 'turkey_feather': return '#D2691E';
+      default: return '#FFD700';
+    }
+  }
+
+  public getEffect(): PowerUpEffect {
+    switch (this.type) {
+      case 'pumpkin':
+        return { type: 'pumpkin', duration: 5000, value: 1 }; // 5 seconds invincibility
+      case 'acorn':
+        return { type: 'acorn', duration: 10000, value: 2 }; // 10 seconds double points
+      case 'maple_leaf':
+        return { type: 'maple_leaf', duration: 8000, value: 0.3 }; // 8 seconds reduced gravity
+      case 'turkey_feather':
+        return { type: 'turkey_feather', duration: 0, value: 1 }; // Instant shield (one collision protection)
+      default:
+        return { type: 'pumpkin', duration: 3000, value: 1 };
+    }
+  }
+
+  public isOffScreen(): boolean {
+    return this.x + this.width < 0;
+  }
+
+  public checkCollision(turkey: Turkey): boolean {
+    if (this.collected) return false;
+    
+    return (
+      turkey.x < this.x + this.width &&
+      turkey.x + turkey.width > this.x &&
+      turkey.y < this.y + this.height &&
+      turkey.y + turkey.height > this.y
+    );
+  }
+}
