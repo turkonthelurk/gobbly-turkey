@@ -1,5 +1,5 @@
 import { GamePhase } from "./stores/useGame";
-import { Turkey, Obstacle, LeafParticle } from "./sprites.ts";
+import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } from "./sprites.ts";
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -7,13 +7,19 @@ export class GameEngine {
   private turkey: Turkey;
   private obstacles: Obstacle[] = [];
   private leafParticles: LeafParticle[] = [];
+  private powerUps: PowerUp[] = [];
+  private activePowerUps: Map<PowerUpType, { effect: PowerUpEffect; endTime: number }> = new Map();
   private gameState: GamePhase = 'ready';
   private animationId: number | null = null;
   private lastObstacleTime = 0;
   private obstacleSpawnInterval = 2000; // 2 seconds
   private lastLeafSpawnTime = 0;
   private leafSpawnInterval = 300; // Spawn leaves every 300ms
+  private lastPowerUpSpawnTime = 0;
+  private powerUpSpawnInterval = 8000; // Spawn power-up every 8 seconds
   private startTime = Date.now(); // Track animation time
+  private shieldActive = false; // Turkey feather shield protection
+  private invulnerabilityEndTime = 0; // Post-shield invulnerability window
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
 
@@ -66,8 +72,13 @@ export class GameEngine {
     this.turkey = new Turkey(100, this.canvas.height / 2);
     this.obstacles = [];
     this.leafParticles = [];
+    this.powerUps = [];
+    this.activePowerUps.clear();
+    this.shieldActive = false;
+    this.invulnerabilityEndTime = 0;
     this.lastObstacleTime = 0;
     this.lastLeafSpawnTime = 0;
+    this.lastPowerUpSpawnTime = 0;
   }
 
   private gameLoop = () => {
@@ -81,7 +92,14 @@ export class GameEngine {
 
     // Only update turkey physics when playing
     if (this.gameState === 'playing') {
-      this.turkey.update(this.GRAVITY);
+      // Apply gravity modification if maple leaf power-up is active
+      let currentGravity = this.GRAVITY;
+      const mapleLeafEffect = this.activePowerUps.get('maple_leaf');
+      if (mapleLeafEffect && currentTime < mapleLeafEffect.endTime) {
+        currentGravity *= mapleLeafEffect.effect.value; // Reduced gravity
+      }
+      
+      this.turkey.update(currentGravity);
 
       // Check boundaries
       if (this.turkey.y < 0 || this.turkey.y + this.turkey.height > this.canvas.height - 50) {
@@ -94,6 +112,9 @@ export class GameEngine {
     this.updateLeafParticles(currentTime);
 
     if (this.gameState !== 'playing') return;
+
+    // Update power-ups
+    this.updatePowerUps(currentTime);
 
     // Spawn obstacles
     if (currentTime - this.lastObstacleTime > this.obstacleSpawnInterval) {
@@ -115,13 +136,45 @@ export class GameEngine {
       // Check for scoring
       if (!obstacle.scored && obstacle.x + obstacle.width < this.turkey.x) {
         obstacle.scored = true;
-        this.onScoreIncrease();
+        
+        // Check if acorn power-up is active for double points
+        const acornEffect = this.activePowerUps.get('acorn');
+        if (acornEffect && currentTime < acornEffect.endTime) {
+          // Give double points
+          this.onScoreIncrease();
+          this.onScoreIncrease();
+          console.log('Double points from acorn power-up!');
+        } else {
+          // Normal single point
+          this.onScoreIncrease();
+        }
       }
 
       // Check collisions
       if (this.checkCollision(this.turkey, obstacle)) {
-        this.endGame();
-        return;
+        // Check if invincibility power-up is active
+        const pumpkinEffect = this.activePowerUps.get('pumpkin');
+        const isInvincible = pumpkinEffect && currentTime < pumpkinEffect.endTime;
+        
+        // Check if post-shield invulnerability is active
+        const isPostShieldInvulnerable = currentTime < this.invulnerabilityEndTime;
+        
+        // Check if shield is active
+        if (this.shieldActive) {
+          // Consume the shield and add temporary invulnerability
+          this.shieldActive = false;
+          this.invulnerabilityEndTime = currentTime + 500; // 500ms grace period
+          console.log('Shield protected from collision!');
+          return;
+        } else if (isInvincible || isPostShieldInvulnerable) {
+          // Invincible, no damage taken
+          if (isInvincible) console.log('Invincible! No damage taken!');
+          return;
+        } else {
+          // No protection, end game
+          this.endGame();
+          return;
+        }
       }
     }
   }
@@ -140,6 +193,9 @@ export class GameEngine {
 
     // Draw leaf particles in background
     this.leafParticles.forEach(leaf => leaf.draw(this.ctx));
+
+    // Draw power-ups
+    this.powerUps.forEach(powerUp => powerUp.draw(this.ctx));
 
     // Draw obstacles
     this.obstacles.forEach(obstacle => obstacle.draw(this.ctx));
@@ -336,5 +392,89 @@ export class GameEngine {
   private endGame() {
     this.gameState = 'ended';
     this.onGameOver();
+  }
+
+  private updatePowerUps(currentTime: number) {
+    // Spawn new power-ups occasionally
+    if (currentTime - this.lastPowerUpSpawnTime > this.powerUpSpawnInterval) {
+      this.spawnPowerUp();
+      this.lastPowerUpSpawnTime = currentTime;
+    }
+
+    // Update existing power-ups
+    for (let i = this.powerUps.length - 1; i >= 0; i--) {
+      const powerUp = this.powerUps[i];
+      powerUp.update();
+
+      // Check collision with turkey
+      if (powerUp.checkCollision(this.turkey)) {
+        powerUp.collected = true;
+        this.collectPowerUp(powerUp, currentTime);
+        this.powerUps.splice(i, 1);
+        continue;
+      }
+
+      // Remove off-screen power-ups
+      if (powerUp.isOffScreen()) {
+        this.powerUps.splice(i, 1);
+      }
+    }
+
+    // Clean up expired power-up effects
+    this.activePowerUps.forEach((powerUpData, type) => {
+      if (currentTime >= powerUpData.endTime) {
+        this.activePowerUps.delete(type);
+      }
+    });
+  }
+
+  private spawnPowerUp() {
+    const types: PowerUpType[] = ['pumpkin', 'acorn', 'maple_leaf', 'turkey_feather'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    // Spawn at random height, avoiding top and bottom areas
+    const minY = 50;
+    const maxY = this.canvas.height - 100;
+    const y = minY + Math.random() * (maxY - minY);
+    
+    const powerUp = new PowerUp(this.canvas.width, y, randomType);
+    this.powerUps.push(powerUp);
+  }
+
+  private collectPowerUp(powerUp: PowerUp, currentTime: number) {
+    const effect = powerUp.getEffect();
+    
+    console.log(`Power-up collected: ${effect.type}`);
+    
+    switch (effect.type) {
+      case 'pumpkin':
+        // Invincibility for 5 seconds
+        this.activePowerUps.set('pumpkin', {
+          effect,
+          endTime: currentTime + effect.duration
+        });
+        break;
+        
+      case 'acorn':
+        // Double points for 10 seconds
+        this.activePowerUps.set('acorn', {
+          effect,
+          endTime: currentTime + effect.duration
+        });
+        break;
+        
+      case 'maple_leaf':
+        // Reduced gravity for 8 seconds
+        this.activePowerUps.set('maple_leaf', {
+          effect,
+          endTime: currentTime + effect.duration
+        });
+        break;
+        
+      case 'turkey_feather':
+        // Instant shield - protects from one collision
+        this.shieldActive = true;
+        break;
+    }
   }
 }
