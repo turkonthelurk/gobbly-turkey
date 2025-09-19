@@ -13,6 +13,7 @@ export class GameEngine {
   private obstacleSpawnInterval = 2000; // 2 seconds
   private lastLeafSpawnTime = 0;
   private leafSpawnInterval = 300; // Spawn leaves every 300ms
+  private startTime = Date.now(); // Track animation time
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
 
@@ -126,12 +127,16 @@ export class GameEngine {
   }
 
   private draw() {
-    // Clear canvas
-    this.ctx.fillStyle = '#FF8C42'; // Autumn orange sky
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const currentTime = Date.now();
+    
+    // Clear canvas with gradient sky
+    this.drawSky();
 
-    // Draw clouds (simple decorative elements)
-    this.drawClouds();
+    // Draw distant trees for depth
+    this.drawDistantTrees();
+
+    // Draw animated moving clouds
+    this.drawClouds(currentTime);
 
     // Draw leaf particles in background
     this.leafParticles.forEach(leaf => leaf.draw(this.ctx));
@@ -146,22 +151,90 @@ export class GameEngine {
     this.drawGround();
   }
 
-  private drawClouds() {
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  private drawSky() {
+    // Create gradient sky for more atmosphere
+    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+    gradient.addColorStop(0, '#FFB366'); // Lighter orange at top
+    gradient.addColorStop(1, '#FF8C42'); // Original autumn orange at bottom
     
-    // Simple cloud shapes
-    const clouds = [
-      { x: 50, y: 100, size: 20 },
-      { x: 200, y: 80, size: 15 },
-      { x: 320, y: 120, size: 18 },
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  private drawDistantTrees() {
+    // Draw silhouettes of distant trees for depth
+    this.ctx.fillStyle = 'rgba(139, 69, 19, 0.3)'; // Semi-transparent brown
+    
+    const trees = [
+      { x: 80, height: 60 },
+      { x: 150, height: 45 },
+      { x: 220, height: 70 },
+      { x: 290, height: 55 },
+      { x: 350, height: 40 },
     ];
 
-    clouds.forEach(cloud => {
+    trees.forEach(tree => {
+      const baseY = this.canvas.height - 50; // Above ground level
+      
+      // Tree trunk
+      this.ctx.fillRect(tree.x - 3, baseY - tree.height, 6, tree.height);
+      
+      // Tree foliage (simple triangle)
       this.ctx.beginPath();
-      this.ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
-      this.ctx.arc(cloud.x + 15, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
-      this.ctx.arc(cloud.x - 15, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
+      this.ctx.moveTo(tree.x, baseY - tree.height - 15);
+      this.ctx.lineTo(tree.x - 15, baseY - tree.height + 10);
+      this.ctx.lineTo(tree.x + 15, baseY - tree.height + 10);
+      this.ctx.closePath();
       this.ctx.fill();
+    });
+  }
+
+  private drawClouds(currentTime: number) {
+    // Animate clouds moving slowly from right to left
+    const elapsed = (currentTime - this.startTime) / 1000; // Convert to seconds
+    
+    // Define multiple cloud layers with different speeds for parallax effect
+    const cloudLayers = [
+      { 
+        clouds: [
+          { baseX: 100, y: 80, size: 25, speed: 8 },
+          { baseX: 300, y: 60, size: 20, speed: 8 },
+        ],
+        alpha: 0.7
+      },
+      {
+        clouds: [
+          { baseX: 180, y: 120, size: 18, speed: 12 },
+          { baseX: 380, y: 100, size: 22, speed: 12 },
+        ],
+        alpha: 0.5
+      },
+      {
+        clouds: [
+          { baseX: 50, y: 140, size: 15, speed: 15 },
+          { baseX: 250, y: 40, size: 17, speed: 15 },
+        ],
+        alpha: 0.6
+      }
+    ];
+
+    cloudLayers.forEach(layer => {
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${layer.alpha})`;
+      
+      layer.clouds.forEach(cloud => {
+        // Calculate moving position with wrapping
+        let x = (cloud.baseX - (elapsed * cloud.speed)) % (this.canvas.width + 100);
+        if (x < -50) x += this.canvas.width + 100;
+        
+        // Draw cloud shape with multiple circles
+        this.ctx.beginPath();
+        this.ctx.arc(x, cloud.y, cloud.size, 0, Math.PI * 2);
+        this.ctx.arc(x + cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
+        this.ctx.arc(x - cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
+        this.ctx.arc(x + cloud.size * 0.3, cloud.y - cloud.size * 0.4, cloud.size * 0.6, 0, Math.PI * 2);
+        this.ctx.arc(x - cloud.size * 0.3, cloud.y - cloud.size * 0.4, cloud.size * 0.6, 0, Math.PI * 2);
+        this.ctx.fill();
+      });
     });
   }
 
