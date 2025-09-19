@@ -6,11 +6,21 @@ import { useAudio } from "../lib/stores/useAudio";
 
 const Game = () => {
   const { phase, start, restart } = useGame();
-  const { playSuccess, playHit, playFlap, initializeAudio, isInitialized, startBackgroundMusic, stopBackgroundMusic, toggleMute, isMuted } = useAudio();
+  const {
+    playSuccess,
+    playHit,
+    playFlap,
+    initializeAudio,
+    isInitialized,
+    startBackgroundMusic,
+    stopBackgroundMusic,
+    toggleMute,
+    isMuted,
+  } = useAudio();
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem('gobblyTurkeyHighScore') || '0');
+    return parseInt(localStorage.getItem("gobblyTurkeyHighScore") || "0");
   });
 
   // Initialize audio when component mounts
@@ -23,8 +33,8 @@ const Game = () => {
   // Handle background music based on game phase
   useEffect(() => {
     if (!isInitialized) return;
-    
-    if (phase === 'playing') {
+
+    if (phase === "playing") {
       startBackgroundMusic();
     } else {
       stopBackgroundMusic();
@@ -35,26 +45,35 @@ const Game = () => {
   useEffect(() => {
     if (score > highScore) {
       setHighScore(score);
-      localStorage.setItem('gobblyTurkeyHighScore', score.toString());
+      localStorage.setItem("gobblyTurkeyHighScore", score.toString());
     }
   }, [score, highScore]);
 
   const handleScoreIncrease = () => {
-    setScore(prev => {
+    setScore((prev) => {
       const newScore = prev + 1;
+      console.log(`📈 SCORE UPDATE: ${prev} → ${newScore}`);
+
       // Check for level progression on next frame to avoid state update conflicts
       setTimeout(() => {
-        const newLevel = Math.floor(newScore / 10) + 1;
-        if (newLevel > level) {
-          setLevel(newLevel);
-          console.log(`🎉 LEVEL UP! Welcome to Level ${newLevel}!`);
-          
-          if (newLevel === 2) {
-            console.log('🎯 You reached Level 2! The game is getting faster!');
-          } else if (newLevel === 3) {
-            console.log('🔥 Level 3 achieved! Expert mode activated!');
-          } else if (newLevel >= 5) {
-            console.log('👑 Master level reached! You are a Gobbly Turkey champion!');
+        const calculatedLevel = Math.floor(newScore / 10) + 1;
+        console.log(
+          `🔄 LEVEL CHECK: Score=${newScore}, CurrentLevel=${level}, CalculatedLevel=${calculatedLevel}`,
+        );
+
+        if (calculatedLevel > level) {
+          console.log(`🚀 TRIGGERING LEVEL UP: ${level} → ${calculatedLevel}`);
+          setLevel(calculatedLevel);
+          console.log(`🎉 LEVEL UP! Welcome to Level ${calculatedLevel}!`);
+
+          if (calculatedLevel === 2) {
+            console.log("🎯 You reached Level 2! The game is getting faster!");
+          } else if (calculatedLevel === 3) {
+            console.log("🔥 Level 3 achieved! Expert mode activated!");
+          } else if (calculatedLevel >= 5) {
+            console.log(
+              "👑 Master level reached! You are a Gobbly Turkey champion!",
+            );
           }
         }
       }, 0);
@@ -62,7 +81,6 @@ const Game = () => {
     });
     playSuccess();
   };
-
 
   const handleGameOver = () => {
     playHit();
@@ -75,15 +93,17 @@ const Game = () => {
   };
 
   return (
-    <div style={{ 
-      position: 'relative', 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#FF8C42'
-    }}>
-      <GameCanvas 
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#FF8C42",
+      }}
+    >
+      <GameCanvas
         onScoreIncrease={handleScoreIncrease}
         onGameOver={handleGameOver}
         currentLevel={level}
@@ -91,7 +111,7 @@ const Game = () => {
         onStart={start}
         onFlap={playFlap}
       />
-      <GameUI 
+      <GameUI
         score={score}
         level={level}
         highScore={highScore}

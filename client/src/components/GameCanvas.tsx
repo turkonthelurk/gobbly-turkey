@@ -11,32 +11,42 @@ interface GameCanvasProps {
   onFlap: () => void;
 }
 
-const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onStart, onFlap }: GameCanvasProps) => {
+const GameCanvas = ({
+  onScoreIncrease,
+  onGameOver,
+  currentLevel,
+  gamePhase,
+  onStart,
+  onFlap,
+}: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.code === 'Space') {
-      event.preventDefault();
-      
-      if (gamePhase === 'ready') {
-        onStart();
-      } else if (gamePhase === 'playing' && gameEngineRef.current) {
-        gameEngineRef.current.flap();
-        onFlap();
-      } else if (gamePhase === 'ended') {
-        window.location.reload();
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.code === "Space") {
+        event.preventDefault();
+
+        if (gamePhase === "ready") {
+          onStart();
+        } else if (gamePhase === "playing" && gameEngineRef.current) {
+          gameEngineRef.current.flap();
+          onFlap();
+        } else if (gamePhase === "ended") {
+          window.location.reload();
+        }
       }
-    }
-  }, [gamePhase, onStart]);
+    },
+    [gamePhase, onStart],
+  );
 
   const handleClick = useCallback(() => {
-    if (gamePhase === 'ready') {
+    if (gamePhase === "ready") {
       onStart();
-    } else if (gamePhase === 'playing' && gameEngineRef.current) {
+    } else if (gamePhase === "playing" && gameEngineRef.current) {
       gameEngineRef.current.flap();
       onFlap();
-    } else if (gamePhase === 'ended') {
+    } else if (gamePhase === "ended") {
       window.location.reload();
     }
   }, [gamePhase, onStart]);
@@ -45,7 +55,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onSt
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Initialize game engine
@@ -53,22 +63,22 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onSt
       canvas,
       ctx,
       onScoreIncrease,
-      onGameOver
+      onGameOver,
     );
 
     // Start game loop
     gameEngineRef.current.start();
 
     // Event listeners
-    document.addEventListener('keydown', handleKeyDown);
-    canvas.addEventListener('click', handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    canvas.addEventListener("click", handleClick);
 
     return () => {
       if (gameEngineRef.current) {
         gameEngineRef.current.stop();
       }
-      document.removeEventListener('keydown', handleKeyDown);
-      canvas.removeEventListener('click', handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+      canvas.removeEventListener("click", handleClick);
     };
   }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
 
@@ -81,8 +91,15 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onSt
 
   // Sync level with game engine
   useEffect(() => {
+    console.log(`🔄 CANVAS LEVEL SYNC: Received level prop ${currentLevel}`);
     if (gameEngineRef.current) {
+      console.log(`📡 SYNCING ENGINE: Setting engine level to ${currentLevel}`);
       gameEngineRef.current.setCurrentLevel(currentLevel);
+      console.log(
+        `✅ ENGINE LEVEL SET: Engine now at level ${gameEngineRef.current.getCurrentLevel()}`,
+      );
+    } else {
+      console.log(`⚠️ ENGINE NOT READY: Cannot sync level ${currentLevel}`);
     }
   }, [currentLevel]);
 
@@ -92,9 +109,9 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, currentLevel, gamePhase, onSt
       width={400}
       height={600}
       style={{
-        border: '2px solid #8B4513',
-        backgroundColor: '#FF8C42',
-        cursor: 'pointer'
+        border: "2px solid #8B4513",
+        backgroundColor: "#FF8C42",
+        cursor: "pointer",
       }}
     />
   );
