@@ -37,16 +37,6 @@ const GameCanvas = ({
         }
       }
       
-      // LEVEL PROGRESSION TEST: Press 'T' to test level advancement
-      if (event.code === "KeyT" && gamePhase === "playing") {
-        console.log('🧪 LEVEL TEST: Testing level progression by simulating 10 score increases');
-        for (let i = 0; i < 10; i++) {
-          setTimeout(() => {
-            onScoreIncrease();
-            console.log(`🧪 TEST SCORE: ${i + 1}/10`);
-          }, i * 100);
-        }
-      }
     },
     [gamePhase, onStart, onFlap, onScoreIncrease],
   );
@@ -102,15 +92,8 @@ const GameCanvas = ({
 
   // Sync level with game engine
   useEffect(() => {
-    console.log(`🔄 CANVAS LEVEL SYNC: Received level prop ${currentLevel}`);
     if (gameEngineRef.current) {
-      console.log(`📡 SYNCING ENGINE: Setting engine level to ${currentLevel}`);
       gameEngineRef.current.setCurrentLevel(currentLevel);
-      console.log(
-        `✅ ENGINE LEVEL SET: Engine now at level ${gameEngineRef.current.getCurrentLevel()}`,
-      );
-    } else {
-      console.log(`⚠️ ENGINE NOT READY: Cannot sync level ${currentLevel}`);
     }
   }, [currentLevel]);
 

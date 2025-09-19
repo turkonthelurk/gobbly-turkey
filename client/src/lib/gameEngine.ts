@@ -136,49 +136,34 @@ export class GameEngine {
   }
 
   private reset() {
-    console.log('🔄 HARDENED STATE RESET: Beginning clean reset...');
-    
     // Stop any existing animation frame to prevent multiple loops
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
-      console.log('✅ Animation frame canceled');
     }
     
-    // Clear arrays completely (hardened)
+    // Clear arrays completely
     this.obstacles.length = 0;
     this.leafParticles.length = 0; 
     this.powerUps.length = 0;
-    console.log('✅ Arrays cleared');
     
     // Clear power-up effects map
     this.activePowerUps.clear();
-    console.log('✅ Power-up effects cleared');
     
     // Reset state flags
     this.shieldActive = false;
     this.invulnerabilityEndTime = 0;
     this.currentLevel = 1;
-    console.log('✅ State flags reset');
     
-    // Reset all timers to prevent overlap (dedupe timers)
+    // Reset all timers to prevent overlap
     const currentTime = Date.now();
     this.lastObstacleTime = currentTime;
     this.lastLeafSpawnTime = currentTime;
     this.lastPowerUpSpawnTime = currentTime;
     this.startTime = currentTime;
-    console.log('✅ Timers reset and deduped');
     
     // Reinitialize turkey
     this.turkey = new Turkey(100, this.canvas.height / 2);
-    console.log('✅ Turkey reinitialized');
-    
-    // Log current difficulty settings
-    const difficulty = this.getDifficultySettings();
-    console.log(`🎮 DIFFICULTY: Level ${difficulty.level} - ${difficulty.description}`);
-    console.log(`📊 Settings: Speed=${difficulty.obstacleSpeed}, Interval=${difficulty.spawnInterval}ms, Gap=${difficulty.obstacleGap}px`);
-    
-    console.log('🎯 HARDENED STATE RESET: Complete - Ready for clean start');
   }
 
   private gameLoop = () => {
@@ -245,7 +230,6 @@ export class GameEngine {
           // Give double points
           this.onScoreIncrease();
           this.onScoreIncrease();
-          console.log('Double points from acorn power-up!');
         } else {
           // Normal single point
           this.onScoreIncrease();
@@ -266,11 +250,9 @@ export class GameEngine {
           // Consume the shield and add temporary invulnerability
           this.shieldActive = false;
           this.invulnerabilityEndTime = currentTime + 500; // 500ms grace period
-          console.log('Shield protected from collision!');
           return;
         } else if (isInvincible || isPostShieldInvulnerable) {
           // Invincible, no damage taken
-          if (isInvincible) console.log('Invincible! No damage taken!');
           return;
         } else {
           // No protection, end game
@@ -547,7 +529,6 @@ export class GameEngine {
   private collectPowerUp(powerUp: PowerUp, currentTime: number) {
     const effect = powerUp.getEffect();
     
-    console.log(`Power-up collected: ${effect.type}`);
     
     switch (effect.type) {
       case 'pumpkin':
@@ -621,34 +602,7 @@ export class GameEngine {
   }
 
   public setCurrentLevel(level: number): void {
-    const oldLevel = this.currentLevel;
-    if (level !== oldLevel) {
-      console.log(`🚀 LEVEL TRANSITION: ${oldLevel} → ${level}`);
-      console.log('🔧 HARDENING: Checking state consistency...');
-      
-      // Ensure single animation loop (prevent multiple loops)
-      if (this.animationId && level > oldLevel) {
-        console.log('⚠️ HARDENING: Animation already running, ensuring single loop');
-      }
-      
-      // Clear any stale timers or overlapping spawns
-      const currentTime = Date.now();
-      
-      // Update level first
-      this.currentLevel = level;
-      
-      // Log new difficulty settings
-      const newDifficulty = this.getDifficultySettings();
-      console.log(`🎮 NEW DIFFICULTY: Level ${newDifficulty.level} - ${newDifficulty.description}`);
-      console.log(`📊 NEW Settings: Speed=${newDifficulty.obstacleSpeed}, Interval=${newDifficulty.spawnInterval}ms, Gap=${newDifficulty.obstacleGap}px`);
-      
-      // Verify arrays are still managed correctly
-      console.log(`🔍 State Check: Obstacles=${this.obstacles.length}, PowerUps=${this.powerUps.length}, Particles=${this.leafParticles.length}`);
-      
-      console.log(`✅ LEVEL TRANSITION COMPLETE: Now at Level ${level} with hardened state`);
-    } else {
-      this.currentLevel = level;
-    }
+    this.currentLevel = level;
   }
 
 
