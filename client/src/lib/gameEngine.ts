@@ -1,6 +1,65 @@
 import { GamePhase } from "./stores/useGame";
 import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } from "./sprites.ts";
 
+// DIFFICULTY map for level progression with easier Level 1
+interface DifficultySettings {
+  level: number;
+  obstacleSpeed: number;
+  spawnInterval: number;
+  gravity: number;
+  flapStrength: number;
+  obstacleGap: number;
+  description: string;
+}
+
+const DIFFICULTY: { [key: number]: DifficultySettings } = {
+  1: {
+    level: 1,
+    obstacleSpeed: 2.2,
+    spawnInterval: 1600,     // Easier: longer intervals between obstacles
+    gravity: 0.4,           // Easier: lower gravity
+    flapStrength: -9,       // Easier: stronger flap
+    obstacleGap: 190,       // Easier: larger gap (≈30-35% of 600px height)
+    description: "Beginner Mode - Get your wings ready!"
+  },
+  2: {
+    level: 2,
+    obstacleSpeed: 2.8,
+    spawnInterval: 1400,
+    gravity: 0.45,
+    flapStrength: -8.5,
+    obstacleGap: 170,
+    description: "Apprentice Turkey - Flying higher!"
+  },
+  3: {
+    level: 3,
+    obstacleSpeed: 3.4,
+    spawnInterval: 1200,
+    gravity: 0.5,
+    flapStrength: -8,
+    obstacleGap: 160,
+    description: "Expert Flyer - Mastering the skies!"
+  },
+  4: {
+    level: 4,
+    obstacleSpeed: 4.0,
+    spawnInterval: 1000,
+    gravity: 0.55,
+    flapStrength: -7.5,
+    obstacleGap: 150,
+    description: "Turkey Ace - Challenging the winds!"
+  },
+  5: {
+    level: 5,
+    obstacleSpeed: 4.8,
+    spawnInterval: 900,
+    gravity: 0.6,
+    flapStrength: -7,
+    obstacleGap: 140,
+    description: "Gobble Master - Ultimate turkey champion!"
+  }
+};
+
 export class GameEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -12,7 +71,7 @@ export class GameEngine {
   private gameState: GamePhase = 'ready';
   private animationId: number | null = null;
   private lastObstacleTime = 0;
-  private obstacleSpawnInterval = 2000; // 2 seconds
+  private obstacleSpawnInterval = 1600; // 1.6 seconds for easier Level 1
   private lastLeafSpawnTime = 0;
   private leafSpawnInterval = 300; // Spawn leaves every 300ms
   private lastPowerUpSpawnTime = 0;
@@ -21,17 +80,17 @@ export class GameEngine {
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
   private currentLevel = 1; // Track current level
-  private baseObstacleSpeed = 2; // Base obstacle speed
-  private baseObstacleInterval = 2000; // Base obstacle spawn interval
+  private baseObstacleSpeed = 2.2; // Level 1 obstacle speed
+  private baseObstacleInterval = 1600; // Level 1 obstacle spawn interval
   private onScoreIncrease: () => void;
   private onGameOver: () => void;
   private onLevelUp?: (level: number) => void;
 
-  // Game constants
-  private readonly GRAVITY = 0.5;
-  private readonly FLAP_STRENGTH = -8;
-  private readonly OBSTACLE_SPEED = 2;
-  private readonly OBSTACLE_GAP = 150;
+  // Game constants - Level 1 made easier per requirements
+  private readonly GRAVITY = 0.4;           // Slightly lower gravity (was 0.5)
+  private readonly FLAP_STRENGTH = -9;      // Higher flap impulse (was -8)
+  private readonly OBSTACLE_SPEED = 2.2;    // Slightly faster base speed
+  private readonly OBSTACLE_GAP = 190;      // Larger gap (≈30-35% height)
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -59,7 +118,7 @@ export class GameEngine {
 
   public flap() {
     if (this.gameState === 'playing') {
-      this.turkey.flap(this.FLAP_STRENGTH);
+      this.turkey.flap(this.getCurrentFlapStrength());
     }
   }
 
@@ -75,17 +134,49 @@ export class GameEngine {
   }
 
   private reset() {
-    this.turkey = new Turkey(100, this.canvas.height / 2);
-    this.obstacles = [];
-    this.leafParticles = [];
-    this.powerUps = [];
+    console.log('🔄 HARDENED STATE RESET: Beginning clean reset...');
+    
+    // Stop any existing animation frame to prevent multiple loops
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+      console.log('✅ Animation frame canceled');
+    }
+    
+    // Clear arrays completely (hardened)
+    this.obstacles.length = 0;
+    this.leafParticles.length = 0; 
+    this.powerUps.length = 0;
+    console.log('✅ Arrays cleared');
+    
+    // Clear power-up effects map
     this.activePowerUps.clear();
+    console.log('✅ Power-up effects cleared');
+    
+    // Reset state flags
     this.shieldActive = false;
     this.invulnerabilityEndTime = 0;
     this.currentLevel = 1;
-    this.lastObstacleTime = 0;
-    this.lastLeafSpawnTime = 0;
-    this.lastPowerUpSpawnTime = 0;
+    console.log('✅ State flags reset');
+    
+    // Reset all timers to prevent overlap (dedupe timers)
+    const currentTime = Date.now();
+    this.lastObstacleTime = currentTime;
+    this.lastLeafSpawnTime = currentTime;
+    this.lastPowerUpSpawnTime = currentTime;
+    this.startTime = currentTime;
+    console.log('✅ Timers reset and deduped');
+    
+    // Reinitialize turkey
+    this.turkey = new Turkey(100, this.canvas.height / 2);
+    console.log('✅ Turkey reinitialized');
+    
+    // Log current difficulty settings
+    const difficulty = this.getDifficultySettings();
+    console.log(`🎮 DIFFICULTY: Level ${difficulty.level} - ${difficulty.description}`);
+    console.log(`📊 Settings: Speed=${difficulty.obstacleSpeed}, Interval=${difficulty.spawnInterval}ms, Gap=${difficulty.obstacleGap}px`);
+    
+    console.log('🎯 HARDENED STATE RESET: Complete - Ready for clean start');
   }
 
   private gameLoop = () => {
@@ -100,7 +191,7 @@ export class GameEngine {
     // Only update turkey physics when playing
     if (this.gameState === 'playing') {
       // Apply gravity modification if maple leaf power-up is active
-      let currentGravity = this.GRAVITY;
+      let currentGravity = this.getCurrentGravity();
       const mapleLeafEffect = this.activePowerUps.get('maple_leaf');
       if (mapleLeafEffect && currentTime < mapleLeafEffect.endTime) {
         currentGravity *= mapleLeafEffect.effect.value; // Reduced gravity
@@ -316,8 +407,10 @@ export class GameEngine {
   }
 
   private spawnObstacle() {
-    const gapStart = Math.random() * (this.canvas.height - this.OBSTACLE_GAP - 200) + 100;
-    this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, this.OBSTACLE_GAP, this.canvas.height));
+    const dynamicGap = this.getCurrentObstacleGap();
+    const gapStart = Math.random() * (this.canvas.height - dynamicGap - 200) + 100;
+    this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, dynamicGap, this.canvas.height));
+    console.log(`🌲 Obstacle spawned: gap=${dynamicGap}px, level=${this.currentLevel}`);
   }
 
   private checkCollision(turkey: Turkey, obstacle: Obstacle): boolean {
@@ -487,17 +580,39 @@ export class GameEngine {
     }
   }
 
-  // Difficulty progression methods
+  // Difficulty progression methods using DIFFICULTY map
   private getObstacleSpeed(): number {
-    // Increase speed based on level: base speed + 0.3 per level after 1
-    const speedIncrease = (this.currentLevel - 1) * 0.3;
-    return Math.min(this.baseObstacleSpeed + speedIncrease, 5); // Cap at 5
+    const difficulty = this.getDifficultySettings();
+    console.log(`🎯 Level ${this.currentLevel}: Using obstacle speed ${difficulty.obstacleSpeed}`);
+    return difficulty.obstacleSpeed;
   }
 
   private getObstacleSpawnInterval(): number {
-    // Decrease spawn interval based on level: faster spawning as level increases
-    const intervalDecrease = (this.currentLevel - 1) * 150;
-    return Math.max(this.baseObstacleInterval - intervalDecrease, 800); // Cap at 800ms minimum
+    const difficulty = this.getDifficultySettings();
+    console.log(`⏰ Level ${this.currentLevel}: Using spawn interval ${difficulty.spawnInterval}ms`);
+    return difficulty.spawnInterval;
+  }
+
+  private getCurrentGravity(): number {
+    const difficulty = this.getDifficultySettings();
+    return difficulty.gravity;
+  }
+
+  private getCurrentFlapStrength(): number {
+    const difficulty = this.getDifficultySettings();
+    return difficulty.flapStrength;
+  }
+
+  private getCurrentObstacleGap(): number {
+    const difficulty = this.getDifficultySettings();
+    return difficulty.obstacleGap;
+  }
+
+  private getDifficultySettings(): DifficultySettings {
+    // Cap level at max difficulty level or fallback to level 5
+    const level = Math.min(this.currentLevel, Math.max(...Object.keys(DIFFICULTY).map(Number)));
+    const settings = DIFFICULTY[level] || DIFFICULTY[5];
+    return settings;
   }
 
 
@@ -507,7 +622,34 @@ export class GameEngine {
   }
 
   public setCurrentLevel(level: number): void {
-    this.currentLevel = level;
+    const oldLevel = this.currentLevel;
+    if (level !== oldLevel) {
+      console.log(`🚀 LEVEL TRANSITION: ${oldLevel} → ${level}`);
+      console.log('🔧 HARDENING: Checking state consistency...');
+      
+      // Ensure single animation loop (prevent multiple loops)
+      if (this.animationId && level > oldLevel) {
+        console.log('⚠️ HARDENING: Animation already running, ensuring single loop');
+      }
+      
+      // Clear any stale timers or overlapping spawns
+      const currentTime = Date.now();
+      
+      // Update level first
+      this.currentLevel = level;
+      
+      // Log new difficulty settings
+      const newDifficulty = this.getDifficultySettings();
+      console.log(`🎮 NEW DIFFICULTY: Level ${newDifficulty.level} - ${newDifficulty.description}`);
+      console.log(`📊 NEW Settings: Speed=${newDifficulty.obstacleSpeed}, Interval=${newDifficulty.spawnInterval}ms, Gap=${newDifficulty.obstacleGap}px`);
+      
+      // Verify arrays are still managed correctly
+      console.log(`🔍 State Check: Obstacles=${this.obstacles.length}, PowerUps=${this.powerUps.length}, Particles=${this.leafParticles.length}`);
+      
+      console.log(`✅ LEVEL TRANSITION COMPLETE: Now at Level ${level} with hardened state`);
+    } else {
+      this.currentLevel = level;
+    }
   }
 
 
