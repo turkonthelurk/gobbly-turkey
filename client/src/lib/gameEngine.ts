@@ -1,5 +1,5 @@
 import { GamePhase } from "./stores/useGame";
-import { Turkey, Obstacle } from "./sprites";
+import { Turkey, Obstacle } from "./sprites.ts";
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -71,18 +71,20 @@ export class GameEngine {
   };
 
   private update() {
-    if (this.gameState !== 'playing') return;
-
     const currentTime = Date.now();
 
-    // Update turkey
-    this.turkey.update(this.GRAVITY);
+    // Only update turkey physics when playing
+    if (this.gameState === 'playing') {
+      this.turkey.update(this.GRAVITY);
 
-    // Check boundaries
-    if (this.turkey.y < 0 || this.turkey.y > this.canvas.height - this.turkey.height) {
-      this.endGame();
-      return;
+      // Check boundaries
+      if (this.turkey.y < 0 || this.turkey.y + this.turkey.height > this.canvas.height - 50) {
+        this.endGame();
+        return;
+      }
     }
+
+    if (this.gameState !== 'playing') return;
 
     // Spawn obstacles
     if (currentTime - this.lastObstacleTime > this.obstacleSpawnInterval) {

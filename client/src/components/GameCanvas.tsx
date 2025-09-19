@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import { GameEngine } from "../lib/gameEngine";
+import { GameEngine } from "../lib/gameEngine.ts";
 import { GamePhase } from "../lib/stores/useGame";
 
 interface GameCanvasProps {

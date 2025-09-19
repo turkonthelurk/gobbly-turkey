@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import GameCanvas from "./GameCanvas";
-import GameUI from "./GameUI";
+import GameCanvas from "./GameCanvas.tsx";
+import GameUI from "./GameUI.tsx";
 import { useGame } from "../lib/stores/useGame";
 import { useAudio } from "../lib/stores/useAudio";
 
