@@ -1,6 +1,7 @@
 import { GamePhase } from "./stores/useGame";
 import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } from "./sprites.ts";
 import { DIFFICULTY_LEVELS, GAME_CONSTANTS, COLORS, AUDIO_CONFIG, type DifficultySettings } from '../constants/difficulty';
+import { checkTurkeyObstacleCollision, checkSimpleCollision } from './collision';
 
 // Use centralized difficulty constants
 const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
@@ -220,7 +221,7 @@ export class GameEngine {
       }
 
       // Check collisions
-      if (this.checkCollision(this.turkey, obstacle)) {
+      if (checkTurkeyObstacleCollision(this.turkey, obstacle, this.canvas.height)) {
         // Check if invincibility power-up is active
         const pumpkinEffect = this.activePowerUps.get('pumpkin');
         const isInvincible = pumpkinEffect && currentTime < pumpkinEffect.endTime;
@@ -453,52 +454,6 @@ export class GameEngine {
     this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, dynamicGap, this.canvas.height));
   }
 
-  private checkCollision(turkey: Turkey, obstacle: Obstacle): boolean {
-    // Simple AABB collision detection
-    const turkeyRect = {
-      x: turkey.x,
-      y: turkey.y,
-      width: turkey.width,
-      height: turkey.height
-    };
-
-    // Check collision with top trunk
-    if (obstacle.topHeight > 0) {
-      const topRect = {
-        x: obstacle.x,
-        y: 0,
-        width: obstacle.width,
-        height: obstacle.topHeight
-      };
-
-      if (this.rectsIntersect(turkeyRect, topRect)) {
-        return true;
-      }
-    }
-
-    // Check collision with bottom trunk
-    if (obstacle.bottomHeight > 0) {
-      const bottomRect = {
-        x: obstacle.x,
-        y: this.canvas.height - obstacle.bottomHeight,
-        width: obstacle.width,
-        height: obstacle.bottomHeight
-      };
-
-      if (this.rectsIntersect(turkeyRect, bottomRect)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private rectsIntersect(rect1: any, rect2: any): boolean {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
-  }
 
   private updateLeafParticles(currentTime: number) {
     // Spawn new leaf particles
@@ -549,7 +504,7 @@ export class GameEngine {
       powerUp.update();
 
       // Check collision with turkey
-      if (powerUp.checkCollision(this.turkey)) {
+      if (checkSimpleCollision(powerUp, this.turkey)) {
         powerUp.collected = true;
         this.collectPowerUp(powerUp, currentTime);
         this.powerUps.splice(i, 1);
