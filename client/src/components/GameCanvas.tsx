@@ -42,19 +42,11 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }:
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    console.log("GameCanvas effect running, canvas:", canvas);
-    if (!canvas) {
-      console.error("Canvas not found!");
-      return;
-    }
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      console.error("Could not get canvas context!");
-      return;
-    }
+    if (!ctx) return;
 
-    console.log("Initializing GameEngine...");
     // Initialize game engine
     gameEngineRef.current = new GameEngine(
       canvas,
@@ -64,7 +56,6 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }:
     );
 
     // Start game loop
-    console.log("Starting game loop...");
     gameEngineRef.current.start();
 
     // Event listeners
