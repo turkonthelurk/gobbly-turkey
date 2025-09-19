@@ -6,6 +6,7 @@ interface GameCanvasProps {
   onScoreIncrease: () => void;
   onGameOver: () => void;
   onLevelUp: (level: number) => void;
+  onPowerUpsUpdate: (powerUps: Array<{ type: string; endTime: number; effect: any }>) => void;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
@@ -16,6 +17,7 @@ const GameCanvas = ({
   onScoreIncrease,
   onGameOver,
   onLevelUp,
+  onPowerUpsUpdate,
   gamePhase,
   onStart,
   onFlap,
@@ -102,6 +104,20 @@ const GameCanvas = ({
       canvas.removeEventListener("click", handleClick);
     };
   }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
+
+  // Update power-ups display periodically
+  useEffect(() => {
+    if (gamePhase !== 'playing' || !gameEngineRef.current) return;
+    
+    const updateInterval = setInterval(() => {
+      if (gameEngineRef.current) {
+        const activePowerUps = gameEngineRef.current.getActivePowerUps();
+        onPowerUpsUpdate(activePowerUps);
+      }
+    }, 100); // Update 10 times per second
+    
+    return () => clearInterval(updateInterval);
+  }, [gamePhase, onPowerUpsUpdate]);
 
   // Handle game state changes
   useEffect(() => {
