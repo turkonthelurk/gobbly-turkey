@@ -1,14 +1,16 @@
 import { useRef, useEffect, useCallback } from "react";
 import { GameEngine } from "../lib/gameEngine.ts";
 import { GamePhase } from "../lib/stores/useGame";
+import { PowerUpUpdateCallback, PowerUpCollectionCallback } from "../types/game";
+import { PowerUpType } from "../lib/sprites";
 import { createGameActionDispatcher } from "../lib/input";
 
 interface GameCanvasProps {
   onScoreIncrease: () => void;
   onGameOver: () => void;
   onLevelUp: (level: number) => void;
-  onPowerUpsUpdate: (powerUps: Array<{ type: string; endTime: number; effect: any }>) => void;
-  onPowerUpCollected: (type: string) => void;
+  onPowerUpsUpdate: PowerUpUpdateCallback;
+  onPowerUpCollected: PowerUpCollectionCallback;
   gamePhase: GamePhase;
   onStart: () => void;
   onFlap: () => void;
@@ -87,7 +89,7 @@ const GameCanvas = ({
       () => onScoreIncreaseRef.current(),
       () => onGameOverRef.current(),
       (level: number) => onLevelUpRef.current(level),
-      (type: string) => onPowerUpCollectedRef.current(type),
+      (type: PowerUpType) => onPowerUpCollectedRef.current(type),
     );
 
     // Start game loop

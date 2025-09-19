@@ -5,6 +5,7 @@ import { Leaderboard } from "./Leaderboard.tsx";
 import { ScoreSubmissionForm } from "./ScoreSubmissionForm.tsx";
 import { useGame } from "../lib/stores/useGame";
 import { useAudio } from "../lib/stores/useAudio";
+import { ActivePowerUp, CollectionFeedback, PowerUpUpdateCallback, PowerUpCollectionCallback } from "../types/game";
 
 const Game = () => {
   const { phase, start, restart } = useGame();
@@ -24,8 +25,8 @@ const Game = () => {
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem("gobblyTurkeyHighScore") || "0");
   });
-  const [activePowerUps, setActivePowerUps] = useState<Array<{ type: string; endTime: number; effect: any }>>([]);
-  const [collectionFeedback, setCollectionFeedback] = useState<{ type: string; timestamp: number } | null>(null);
+  const [activePowerUps, setActivePowerUps] = useState<ActivePowerUp[]>([]);
+  const [collectionFeedback, setCollectionFeedback] = useState<CollectionFeedback | null>(null);
   
   // Leaderboard state
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -71,11 +72,11 @@ const Game = () => {
     setLevel(newLevel);
   }, []);
 
-  const handlePowerUpsUpdate = useCallback((powerUps: Array<{ type: string; endTime: number; effect: any }>) => {
+  const handlePowerUpsUpdate = useCallback<PowerUpUpdateCallback>((powerUps) => {
     setActivePowerUps(powerUps);
   }, []);
 
-  const handlePowerUpCollected = useCallback((type: string) => {
+  const handlePowerUpCollected = useCallback<PowerUpCollectionCallback>((type) => {
     // Power-up collection (silent in production)
     setCollectionFeedback({ type, timestamp: Date.now() });
     // Clear feedback after 2 seconds
