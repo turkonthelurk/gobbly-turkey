@@ -98,7 +98,7 @@ const GameCanvas = ({
       document.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("click", handleClick);
     };
-  }, [handleKeyDown, handleClick]);
+  }, [handleKeyDown, handleClick, onScoreIncrease, onGameOver]);
 
   // Handle game state changes
   useEffect(() => {

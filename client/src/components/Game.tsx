@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import GameCanvas from "./GameCanvas.tsx";
 import GameUI from "./GameUI.tsx";
 import { useGame } from "../lib/stores/useGame";
@@ -49,7 +49,7 @@ const Game = () => {
     }
   }, [score, highScore]);
 
-  const handleScoreIncrease = () => {
+  const handleScoreIncrease = useCallback(() => {
     setScore((prev) => {
       const newScore = prev + 1;
 
@@ -63,11 +63,11 @@ const Game = () => {
       return newScore;
     });
     playSuccess();
-  };
+  }, [level, playSuccess]);
 
-  const handleGameOver = () => {
+  const handleGameOver = useCallback(() => {
     playHit();
-  };
+  }, [playHit]);
 
   const handleRestart = () => {
     setScore(0);
