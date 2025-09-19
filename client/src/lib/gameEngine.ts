@@ -687,12 +687,14 @@ export class GameEngine {
   // Difficulty progression methods using DIFFICULTY map
   private getObstacleSpeed(): number {
     const difficulty = this.getDifficultySettings();
-    return difficulty.obstacleSpeed;
+    const speed = difficulty?.obstacleSpeed ?? DIFFICULTY[1].obstacleSpeed;
+    return Number.isFinite(speed) ? speed : DIFFICULTY[1].obstacleSpeed;
   }
 
   private getObstacleSpawnInterval(): number {
     const difficulty = this.getDifficultySettings();
-    return difficulty.spawnInterval;
+    const interval = difficulty?.spawnInterval ?? DIFFICULTY[1].spawnInterval;
+    return Number.isFinite(interval) ? interval : DIFFICULTY[1].spawnInterval;
   }
 
   private getCurrentGravity(): number {
@@ -711,9 +713,9 @@ export class GameEngine {
   }
 
   private getDifficultySettings(): DifficultySettings {
-    // Cap level at max difficulty level or fallback to level 5
-    const level = Math.min(this.currentLevel, Math.max(...Object.keys(DIFFICULTY).map(Number)));
-    const settings = DIFFICULTY[level] || DIFFICULTY[5];
+    // Clamp level to valid range [1-5]
+    const level = Math.min(5, Math.max(1, this.currentLevel));
+    const settings = DIFFICULTY[level] || DIFFICULTY[1];
     return settings;
   }
 
@@ -728,8 +730,8 @@ export class GameEngine {
   private incrementScore(): void {
     this.currentScore++;
     
-    // Calculate new level based on score (every 10 points = new level)
-    const newLevel = Math.floor(this.currentScore / 10) + 1;
+    // Calculate new level based on score (every 10 points = new level), clamped to max level 5
+    const newLevel = Math.min(5, Math.floor(this.currentScore / 10) + 1);
     
     // Check for level up
     if (newLevel > this.currentLevel) {
