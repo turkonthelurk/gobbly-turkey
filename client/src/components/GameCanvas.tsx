@@ -36,8 +36,19 @@ const GameCanvas = ({
           window.location.reload();
         }
       }
+      
+      // LEVEL PROGRESSION TEST: Press 'T' to test level advancement
+      if (event.code === "KeyT" && gamePhase === "playing") {
+        console.log('🧪 LEVEL TEST: Testing level progression by simulating 10 score increases');
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => {
+            onScoreIncrease();
+            console.log(`🧪 TEST SCORE: ${i + 1}/10`);
+          }, i * 100);
+        }
+      }
     },
-    [gamePhase, onStart],
+    [gamePhase, onStart, onFlap, onScoreIncrease],
   );
 
   const handleClick = useCallback(() => {
