@@ -3,6 +3,10 @@ import { Turkey, Obstacle, LeafParticle, PowerUp, PowerUpType, PowerUpEffect } f
 import { DIFFICULTY_LEVELS, GAME_CONSTANTS, COLORS, AUDIO_CONFIG, type DifficultySettings } from '../constants/difficulty';
 import { checkTurkeyObstacleCollision, checkSimpleCollision } from './collision';
 import { shouldSpawn, calculateObstacleGapPosition, calculatePowerUpSpawnPosition, calculateLeafSpawnPosition, getRandomSpawnCount, getRandomPowerUpType } from './spawn';
+import { drawSky } from './render/sky';
+import { drawGround } from './render/ground';
+import { drawDistantTrees } from './render/trees';
+import { drawClouds } from './render/clouds';
 
 // Use centralized difficulty constants
 const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
@@ -254,13 +258,14 @@ export class GameEngine {
     const currentTime = Date.now();
     
     // Clear canvas with gradient sky
-    this.drawSky();
+    drawSky(this.ctx, this.canvas.width, this.canvas.height);
 
     // Draw distant trees for depth
-    this.drawDistantTrees();
+    const elapsedTime = (currentTime - this.startTime) / 1000;
+    drawDistantTrees(this.ctx, this.canvas.width, this.canvas.height, elapsedTime, this.getObstacleSpeed());
 
     // Draw animated moving clouds
-    this.drawClouds(currentTime);
+    drawClouds(this.ctx, this.canvas.width, this.canvas.height, elapsedTime);
 
     // Draw leaf particles in background
     this.leafParticles.forEach(leaf => leaf.draw(this.ctx));
@@ -275,179 +280,12 @@ export class GameEngine {
     this.turkey.draw(this.ctx);
 
     // Draw ground
-    this.drawGround();
+    drawGround(this.ctx, this.canvas.width, this.canvas.height, elapsedTime, this.getObstacleSpeed(), this.grassTexture);
   }
 
-  private drawSky() {
-    // Create gradient sky for more atmosphere
-    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-    gradient.addColorStop(0, '#FFB366'); // Lighter orange at top
-    gradient.addColorStop(1, '#FF8C42'); // Original autumn orange at bottom
-    
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
 
-  private drawDistantTrees() {
-    // Draw silhouettes of distant trees with parallax scrolling
-    const elapsed = (Date.now() - this.startTime) / 1000;
-    const obstacleSpeedPerSec = this.getObstacleSpeed() * 60; // Convert px/frame to px/second
-    const baseSpeed = obstacleSpeedPerSec * 0.15; // Much slower than obstacles for depth
-    
-    // Multiple tree layers with different parallax speeds
-    const treeLayers = [
-      {
-        trees: [
-          { baseX: 80, height: 60 },
-          { baseX: 220, height: 70 },
-          { baseX: 360, height: 55 },
-          { baseX: 500, height: 65 },
-        ],
-        speed: baseSpeed * 0.3,
-        alpha: 0.2
-      },
-      {
-        trees: [
-          { baseX: 150, height: 45 },
-          { baseX: 290, height: 55 },
-          { baseX: 430, height: 40 },
-          { baseX: 570, height: 50 },
-        ],
-        speed: baseSpeed * 0.6,
-        alpha: 0.3
-      }
-    ];
 
-    treeLayers.forEach(layer => {
-      this.ctx.fillStyle = `rgba(139, 69, 19, ${layer.alpha})`;
-      
-      layer.trees.forEach(tree => {
-        // Calculate scrolling position with wrapping
-        let x = (tree.baseX - (elapsed * layer.speed)) % (this.canvas.width + 200);
-        if (x < -100) x += this.canvas.width + 200;
-        
-        const baseY = this.canvas.height - 50; // Above ground level
-        
-        // Tree trunk
-        this.ctx.fillRect(x - 3, baseY - tree.height, 6, tree.height);
-        
-        // Tree foliage (simple triangle)
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, baseY - tree.height - 15);
-        this.ctx.lineTo(x - 15, baseY - tree.height + 10);
-        this.ctx.lineTo(x + 15, baseY - tree.height + 10);
-        this.ctx.closePath();
-        this.ctx.fill();
-      });
-    });
-  }
 
-  private drawClouds(currentTime: number) {
-    // Animate clouds moving slowly from right to left
-    const elapsed = (currentTime - this.startTime) / 1000; // Convert to seconds
-    
-    // Define multiple cloud layers with different speeds for parallax effect
-    const cloudLayers = [
-      { 
-        clouds: [
-          { baseX: 100, y: 80, size: 25, speed: 8 },
-          { baseX: 300, y: 60, size: 20, speed: 8 },
-        ],
-        alpha: 0.7
-      },
-      {
-        clouds: [
-          { baseX: 180, y: 120, size: 18, speed: 12 },
-          { baseX: 380, y: 100, size: 22, speed: 12 },
-        ],
-        alpha: 0.5
-      },
-      {
-        clouds: [
-          { baseX: 50, y: 140, size: 15, speed: 15 },
-          { baseX: 250, y: 40, size: 17, speed: 15 },
-        ],
-        alpha: 0.6
-      }
-    ];
-
-    cloudLayers.forEach(layer => {
-      this.ctx.fillStyle = `rgba(255, 255, 255, ${layer.alpha})`;
-      
-      layer.clouds.forEach(cloud => {
-        // Calculate moving position with wrapping
-        let x = (cloud.baseX - (elapsed * cloud.speed)) % (this.canvas.width + 100);
-        if (x < -50) x += this.canvas.width + 100;
-        
-        // Draw cloud shape with multiple circles
-        this.ctx.beginPath();
-        this.ctx.arc(x, cloud.y, cloud.size, 0, Math.PI * 2);
-        this.ctx.arc(x + cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
-        this.ctx.arc(x - cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
-        this.ctx.arc(x + cloud.size * 0.3, cloud.y - cloud.size * 0.4, cloud.size * 0.6, 0, Math.PI * 2);
-        this.ctx.arc(x - cloud.size * 0.3, cloud.y - cloud.size * 0.4, cloud.size * 0.6, 0, Math.PI * 2);
-        this.ctx.fill();
-      });
-    });
-  }
-
-  private drawGround() {
-    const groundHeight = 50;
-    const elapsed = (Date.now() - this.startTime) / 1000;
-    const obstacleSpeedPerSec = this.getObstacleSpeed() * 60; // Convert px/frame to px/second
-    const groundScrollSpeed = obstacleSpeedPerSec * 0.8; // Tied to obstacle speed
-    
-    // Brown ground base
-    this.ctx.fillStyle = '#8B4513';
-    this.ctx.fillRect(0, this.canvas.height - groundHeight, this.canvas.width, groundHeight);
-    
-    // Scrolling grass texture or fallback pattern
-    if (this.grassTexture && this.grassTexture.naturalWidth > 0) {
-      // Use grass texture with scrolling pattern
-      const grassHeight = 15;
-      const tileWidth = this.grassTexture.naturalWidth; // Use naturalWidth consistently
-      const scrollOffset = (elapsed * groundScrollSpeed) % tileWidth;
-      
-      this.ctx.save();
-      this.ctx.translate(-scrollOffset, 0);
-      
-      // Draw repeating grass texture across the width
-      for (let x = 0; x < this.canvas.width + tileWidth + scrollOffset; x += tileWidth) {
-        this.ctx.drawImage(
-          this.grassTexture,
-          x,
-          this.canvas.height - groundHeight,
-          tileWidth,
-          grassHeight
-        );
-      }
-      
-      this.ctx.restore();
-    } else {
-      // Fallback to procedural grass pattern
-      this.ctx.fillStyle = '#228B22';
-      const grassPatternWidth = 20;
-      const scrollOffset = (elapsed * groundScrollSpeed) % grassPatternWidth;
-      
-      for (let x = -grassPatternWidth; x < this.canvas.width + grassPatternWidth; x += grassPatternWidth) {
-        const adjustedX = x - scrollOffset;
-        
-        // Simple grass blade pattern
-        this.ctx.fillRect(adjustedX, this.canvas.height - groundHeight, 15, 12);
-        this.ctx.fillRect(adjustedX + 5, this.canvas.height - groundHeight + 3, 8, 8);
-        this.ctx.fillRect(adjustedX + 12, this.canvas.height - groundHeight + 1, 6, 10);
-      }
-    }
-    
-    // Add subtle ground texture details
-    this.ctx.fillStyle = 'rgba(160, 82, 45, 0.3)';
-    const detailOffset = (elapsed * groundScrollSpeed * 0.5) % 30;
-    for (let x = -30; x < this.canvas.width + 30; x += 30) {
-      const adjustedX = x - detailOffset;
-      this.ctx.fillRect(adjustedX, this.canvas.height - 20, 20, 3);
-      this.ctx.fillRect(adjustedX + 10, this.canvas.height - 15, 12, 2);
-    }
-  }
 
   private spawnObstacle() {
     const dynamicGap = this.getCurrentObstacleGap();
