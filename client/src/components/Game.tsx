@@ -6,11 +6,29 @@ import { useAudio } from "../lib/stores/useAudio";
 
 const Game = () => {
   const { phase, start, restart } = useGame();
-  const { playSuccess, playHit } = useAudio();
+  const { playSuccess, playHit, playFlap, initializeAudio, isInitialized, startBackgroundMusic, stopBackgroundMusic, toggleMute, isMuted } = useAudio();
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem('gobblyTurkeyHighScore') || '0');
   });
+
+  // Initialize audio when component mounts
+  useEffect(() => {
+    if (!isInitialized) {
+      initializeAudio();
+    }
+  }, [isInitialized, initializeAudio]);
+
+  // Handle background music based on game phase
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    if (phase === 'playing') {
+      startBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+    }
+  }, [phase, isInitialized, startBackgroundMusic, stopBackgroundMusic]);
 
   // Update high score when score changes
   useEffect(() => {
@@ -48,6 +66,7 @@ const Game = () => {
         onGameOver={handleGameOver}
         gamePhase={phase}
         onStart={start}
+        onFlap={playFlap}
       />
       <GameUI 
         score={score}
@@ -55,6 +74,8 @@ const Game = () => {
         gamePhase={phase}
         onRestart={handleRestart}
         onStart={start}
+        onToggleMute={toggleMute}
+        isMuted={isMuted}
       />
     </div>
   );
