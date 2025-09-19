@@ -7,9 +7,10 @@ interface GameCanvasProps {
   onGameOver: () => void;
   gamePhase: GamePhase;
   onStart: () => void;
+  onFlap: () => void;
 }
 
-const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart }: GameCanvasProps) => {
+const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart, onFlap }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
 
@@ -21,6 +22,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart }: GameCan
         onStart();
       } else if (gamePhase === 'playing' && gameEngineRef.current) {
         gameEngineRef.current.flap();
+        onFlap();
       } else if (gamePhase === 'ended') {
         window.location.reload();
       }
@@ -32,6 +34,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart }: GameCan
       onStart();
     } else if (gamePhase === 'playing' && gameEngineRef.current) {
       gameEngineRef.current.flap();
+      onFlap();
     } else if (gamePhase === 'ended') {
       window.location.reload();
     }
@@ -39,11 +42,19 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart }: GameCan
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    console.log("GameCanvas effect running, canvas:", canvas);
+    if (!canvas) {
+      console.error("Canvas not found!");
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.error("Could not get canvas context!");
+      return;
+    }
 
+    console.log("Initializing GameEngine...");
     // Initialize game engine
     gameEngineRef.current = new GameEngine(
       canvas,
@@ -53,6 +64,7 @@ const GameCanvas = ({ onScoreIncrease, onGameOver, gamePhase, onStart }: GameCan
     );
 
     // Start game loop
+    console.log("Starting game loop...");
     gameEngineRef.current.start();
 
     // Event listeners
