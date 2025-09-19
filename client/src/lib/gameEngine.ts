@@ -80,6 +80,7 @@ export class GameEngine {
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
   private currentLevel = 1; // Track current level
+  private currentScore = 0; // Track current score internally
   private baseObstacleSpeed = 2.6; // Level 1 obstacle speed
   private baseObstacleInterval = 1350; // Level 1 obstacle spawn interval
   private onScoreIncrease: () => void;
@@ -159,6 +160,12 @@ export class GameEngine {
     this.shieldActive = false;
     this.invulnerabilityEndTime = 0;
     this.currentLevel = 1;
+    this.currentScore = 0;
+    
+    // Notify UI of level reset
+    if (this.onLevelUp) {
+      this.onLevelUp(this.currentLevel);
+    }
     
     // Reset all timers to prevent overlap
     const currentTime = Date.now();
@@ -240,12 +247,12 @@ export class GameEngine {
         const acornEffect = this.activePowerUps.get('acorn');
         if (acornEffect && currentTime < acornEffect.endTime) {
           // Give double points
-          this.onScoreIncrease();
-          this.onScoreIncrease();
+          this.incrementScore();
+          this.incrementScore();
           console.log('✨ Double points from acorn!');
         } else {
           // Normal single point
-          this.onScoreIncrease();
+          this.incrementScore();
         }
       }
 
@@ -614,8 +621,27 @@ export class GameEngine {
     return this.currentLevel;
   }
 
-  public setCurrentLevel(level: number): void {
-    this.currentLevel = level;
+
+  // Internal method to handle scoring and level progression
+  private incrementScore(): void {
+    this.currentScore++;
+    
+    // Calculate new level based on score (every 10 points = new level)
+    const newLevel = Math.floor(this.currentScore / 10) + 1;
+    
+    // Check for level up
+    if (newLevel > this.currentLevel) {
+      this.currentLevel = newLevel;
+      console.log(`🆙 Level up! Now at level ${this.currentLevel}`);
+      
+      // Notify UI of level change
+      if (this.onLevelUp) {
+        this.onLevelUp(this.currentLevel);
+      }
+    }
+    
+    // Notify UI of score increase
+    this.onScoreIncrease();
   }
 
 

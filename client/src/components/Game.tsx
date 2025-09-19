@@ -50,20 +50,14 @@ const Game = () => {
   }, [score, highScore]);
 
   const handleScoreIncrease = useCallback(() => {
-    setScore((prev) => {
-      const newScore = prev + 1;
-
-      // Check for level progression on next frame to avoid state update conflicts
-      setTimeout(() => {
-        const calculatedLevel = Math.floor(newScore / 10) + 1;
-        if (calculatedLevel > level) {
-          setLevel(calculatedLevel);
-        }
-      }, 0);
-      return newScore;
-    });
+    setScore((prev) => prev + 1);
     playSuccess();
-  }, [level, playSuccess]);
+  }, [playSuccess]);
+
+  const handleLevelUp = useCallback((newLevel: number) => {
+    console.log(`🆙 UI received level up to: ${newLevel}`);
+    setLevel(newLevel);
+  }, []);
 
   const handleGameOver = useCallback(() => {
     playHit();
@@ -89,7 +83,7 @@ const Game = () => {
       <GameCanvas
         onScoreIncrease={handleScoreIncrease}
         onGameOver={handleGameOver}
-        currentLevel={level}
+        onLevelUp={handleLevelUp}
         gamePhase={phase}
         onStart={start}
         onFlap={playFlap}
