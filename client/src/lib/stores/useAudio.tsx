@@ -67,7 +67,7 @@ export const useAudio = create<AudioState>((set, get) => ({
         isInitialized: true 
       });
       
-      console.log("Audio system initialized successfully");
+      // Audio system ready (silent in production)
     } catch (error) {
       console.error("Failed to initialize audio:", error);
     }
@@ -84,7 +84,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       backgroundMusic.muted = newMutedState;
     }
     
-    console.log(`Sound ${newMutedState ? 'muted' : 'unmuted'}`);
+    // Audio mute toggle (silent in production)
   },
   
   playHit: () => {

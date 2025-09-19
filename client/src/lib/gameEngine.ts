@@ -79,6 +79,7 @@ export class GameEngine {
   private startTime = Date.now(); // Track animation time
   private shieldActive = false; // Turkey feather shield protection
   private invulnerabilityEndTime = 0; // Post-shield invulnerability window
+  private grassTexture: HTMLImageElement | null = null; // Grass texture for ground
   private currentLevel = 1; // Track current level
   private currentScore = 0; // Track current score internally
   private baseObstacleSpeed = 2.6; // Level 1 obstacle speed
@@ -107,10 +108,24 @@ export class GameEngine {
     
     // Initialize turkey
     this.turkey = new Turkey(100, canvas.height / 2);
+    
+    // Load grass texture
+    this.loadGrassTexture();
+  }
+
+  private loadGrassTexture() {
+    this.grassTexture = new Image();
+    this.grassTexture.onload = () => {
+      // Texture loaded successfully (silent in production)
+    };
+    this.grassTexture.onerror = () => {
+      console.warn('⚠️ Failed to load grass texture, falling back to procedural');
+    };
+    this.grassTexture.src = '/textures/grass.png';
   }
 
   public setGameState(state: GamePhase) {
-    console.log(`🎮 Game state changing to: ${state}`);
+    // Game state change (silent in production)
     this.gameState = state;
     if (state === 'ready') {
       this.reset();
@@ -126,7 +141,7 @@ export class GameEngine {
   }
 
   public start() {
-    console.log('🚀 GameEngine.start() called');
+    // Game engine starting (silent in production)
     // Prevent multiple game loops
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
@@ -134,7 +149,7 @@ export class GameEngine {
     }
     
     this.gameLoop();
-    console.log('✅ Game loop started');
+    // Game loop started (silent in production)
   }
 
   public stop() {
@@ -244,7 +259,7 @@ export class GameEngine {
       // Check for scoring
       if (!obstacle.scored && obstacle.x + obstacle.width < this.turkey.x) {
         obstacle.scored = true;
-        console.log('🏆 Score! Turkey passed obstacle');
+        // Score increase (silent in production)
         
         // Check if acorn power-up is active for double points
         const acornEffect = this.activePowerUps.get('acorn');
@@ -252,7 +267,7 @@ export class GameEngine {
           // Give double points
           this.incrementScore();
           this.incrementScore();
-          console.log('✨ Double points from acorn!');
+          // Double points bonus (silent in production)
         } else {
           // Normal single point
           this.incrementScore();
@@ -329,7 +344,8 @@ export class GameEngine {
   private drawDistantTrees() {
     // Draw silhouettes of distant trees with parallax scrolling
     const elapsed = (Date.now() - this.startTime) / 1000;
-    const baseSpeed = this.getObstacleSpeed() * 0.15; // Much slower than obstacles for depth
+    const obstacleSpeedPerSec = this.getObstacleSpeed() * 60; // Convert px/frame to px/second
+    const baseSpeed = obstacleSpeedPerSec * 0.15; // Much slower than obstacles for depth
     
     // Multiple tree layers with different parallax speeds
     const treeLayers = [
@@ -431,25 +447,49 @@ export class GameEngine {
   private drawGround() {
     const groundHeight = 50;
     const elapsed = (Date.now() - this.startTime) / 1000;
-    const groundScrollSpeed = this.getObstacleSpeed() * 0.8; // Tied to obstacle speed
+    const obstacleSpeedPerSec = this.getObstacleSpeed() * 60; // Convert px/frame to px/second
+    const groundScrollSpeed = obstacleSpeedPerSec * 0.8; // Tied to obstacle speed
     
     // Brown ground base
     this.ctx.fillStyle = '#8B4513';
     this.ctx.fillRect(0, this.canvas.height - groundHeight, this.canvas.width, groundHeight);
     
-    // Scrolling grass texture pattern
-    this.ctx.fillStyle = '#228B22';
-    const grassPatternWidth = 20;
-    const scrollOffset = (elapsed * groundScrollSpeed) % grassPatternWidth;
-    
-    // Draw repeating grass blades that scroll left
-    for (let x = -grassPatternWidth; x < this.canvas.width + grassPatternWidth; x += grassPatternWidth) {
-      const adjustedX = x - scrollOffset;
+    // Scrolling grass texture or fallback pattern
+    if (this.grassTexture && this.grassTexture.naturalWidth > 0) {
+      // Use grass texture with scrolling pattern
+      const grassHeight = 15;
+      const tileWidth = this.grassTexture.naturalWidth; // Use naturalWidth consistently
+      const scrollOffset = (elapsed * groundScrollSpeed) % tileWidth;
       
-      // Grass blade pattern
-      this.ctx.fillRect(adjustedX, this.canvas.height - groundHeight, 15, 12);
-      this.ctx.fillRect(adjustedX + 5, this.canvas.height - groundHeight + 3, 8, 8);
-      this.ctx.fillRect(adjustedX + 12, this.canvas.height - groundHeight + 1, 6, 10);
+      this.ctx.save();
+      this.ctx.translate(-scrollOffset, 0);
+      
+      // Draw repeating grass texture across the width
+      for (let x = 0; x < this.canvas.width + tileWidth + scrollOffset; x += tileWidth) {
+        this.ctx.drawImage(
+          this.grassTexture,
+          x,
+          this.canvas.height - groundHeight,
+          tileWidth,
+          grassHeight
+        );
+      }
+      
+      this.ctx.restore();
+    } else {
+      // Fallback to procedural grass pattern
+      this.ctx.fillStyle = '#228B22';
+      const grassPatternWidth = 20;
+      const scrollOffset = (elapsed * groundScrollSpeed) % grassPatternWidth;
+      
+      for (let x = -grassPatternWidth; x < this.canvas.width + grassPatternWidth; x += grassPatternWidth) {
+        const adjustedX = x - scrollOffset;
+        
+        // Simple grass blade pattern
+        this.ctx.fillRect(adjustedX, this.canvas.height - groundHeight, 15, 12);
+        this.ctx.fillRect(adjustedX + 5, this.canvas.height - groundHeight + 3, 8, 8);
+        this.ctx.fillRect(adjustedX + 12, this.canvas.height - groundHeight + 1, 6, 10);
+      }
     }
     
     // Add subtle ground texture details
@@ -694,7 +734,7 @@ export class GameEngine {
     // Check for level up
     if (newLevel > this.currentLevel) {
       this.currentLevel = newLevel;
-      console.log(`🆙 Level up! Now at level ${this.currentLevel}`);
+      // Level progression (silent in production)
       
       // Notify UI of level change
       if (this.onLevelUp) {
