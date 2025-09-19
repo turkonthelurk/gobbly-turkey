@@ -57,7 +57,7 @@ const Game = () => {
   }, [playSuccess]);
 
   const handleLevelUp = useCallback((newLevel: number) => {
-    console.log(`🆙 UI received level up to: ${newLevel}`);
+    // UI level update (silent in production)
     setLevel(newLevel);
   }, []);
 
@@ -66,7 +66,7 @@ const Game = () => {
   }, []);
 
   const handlePowerUpCollected = useCallback((type: string) => {
-    console.log(`🎆 Power-up collected: ${type}`);
+    // Power-up collection (silent in production)
     setCollectionFeedback({ type, timestamp: Date.now() });
     // Clear feedback after 2 seconds
     setTimeout(() => setCollectionFeedback(null), 2000);
