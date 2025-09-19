@@ -22,8 +22,9 @@ export const SocialShareModal = ({ isOpen, onClose, score }: SocialShareModalPro
   if (!isOpen || !score) return null;
 
   const gameUrl = window.location.href;
-  const playerName = score.name || 'Anonymous Turkey';
-  const shareText = `🦃 I just scored ${score.score.toLocaleString()} points in Gobbly Turkey! ${score.handle ? `(@${score.handle})` : ''} Can you beat my high score? 🎯`;
+  const playerName = score.name || (score.handle ? (score.handle.startsWith('@') ? score.handle.slice(1) : score.handle) : 'Anonymous Turkey');
+  const handleForShare = score.handle ? (score.handle.startsWith('@') ? score.handle : '@' + score.handle) : '';
+  const shareText = `🦃 I just scored ${score.score.toLocaleString()} points in Gobbly Turkey! ${handleForShare ? `(${handleForShare})` : ''} Can you beat my high score? 🎯`;
   const fullShareText = `${shareText}\n\nPlay now: ${gameUrl}`;
 
   const shareLinks = {
@@ -113,7 +114,7 @@ export const SocialShareModal = ({ isOpen, onClose, score }: SocialShareModalPro
               <p className="text-lg font-bold">{score.score.toLocaleString()} points</p>
               <p className="text-sm text-gray-600">by {playerName}</p>
               {score.handle && (
-                <p className="text-sm text-blue-600">@{score.handle}</p>
+                <p className="text-sm text-blue-600">{score.handle.startsWith('@') ? score.handle : '@' + score.handle}</p>
               )}
             </div>
           </CardHeader>
