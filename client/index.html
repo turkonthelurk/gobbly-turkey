@@ -2,8 +2,50 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Gobbly Turkey - 2D Thanksgiving Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Gobbly Turkey - Thanksgiving Runner Game</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#FF8C42" />
+    <meta name="background-color" content="#FF8C42" />
+    <meta name="display" content="standalone" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-title" content="Gobbly Turkey" />
+    
+    <!-- Android PWA Meta Tags -->
+    <meta name="android-mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Gobbly Turkey" />
+    
+    <!-- iOS Meta Tags (for future compatibility) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Gobbly Turkey" />
+    
+    <!-- Game Description for App Stores -->
+    <meta name="description" content="An endless runner Thanksgiving-themed game where you control a turkey flying through obstacles while collecting power-ups. Save the turkeys and achieve high scores!" />
+    <meta name="keywords" content="game, thanksgiving, turkey, endless runner, arcade, mobile game, casual game" />
+    <meta name="author" content="Gobbly Turkey Game" />
+    
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="Gobbly Turkey - Thanksgiving Runner Game" />
+    <meta property="og:description" content="Save the turkeys in this fun Thanksgiving endless runner game!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Gobbly Turkey" />
+    <meta name="twitter:description" content="Save the turkeys in this fun Thanksgiving endless runner game!" />
+    <meta name="twitter:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    <link rel="shortcut icon" href="/icons/icon-32x32.png" />
     <script>
       // Prevent Replit debugging script errors from breaking the game
       window.addEventListener('error', function(e) {
@@ -42,6 +84,30 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+      
+      // PWA Install Prompt (for future enhancement)
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show custom install button in UI if desired
+      });
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
