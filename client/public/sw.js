@@ -121,8 +121,8 @@ self.addEventListener('push', event => {
   if (event.data) {
     const options = {
       body: event.data.text(),
-      icon: '/icons/turkey-icon.svg',
-      badge: '/icons/turkey-icon.svg',
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
       vibrate: [100, 50, 100],
       tag: 'game-notification'
     };
