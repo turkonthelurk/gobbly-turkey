@@ -1,6 +1,8 @@
 # Overview
 
-Gobbly Turkey is a 2D Thanksgiving-themed browser game built with React and TypeScript. It's a Flappy Bird-style game where players control a turkey character navigating through obstacles while collecting points. The game features multiple difficulty levels, audio effects, local high score tracking, and a retro pixel art aesthetic.
+Gobbly Turkey is an original 2D Thanksgiving-themed endless runner browser game built with React and TypeScript. Player control a turkey character navigating through obstacles while collecting points. The game includes multiple difficulty levels, audio effects, local high score tracking, and a retro pixel art aesthetic.
+
+While the gameplay mechanics follow classic arcade runner conventions (common to the genre and not proprietary), all creative content, implementation, and visual assets are uniquely designed and developed from scratch. The game draws inspiration from traditional endless runner gameplay patterns while delivering a distinctive Thanksgiving experience.
 
 # User Preferences
 
@@ -9,6 +11,7 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## Frontend Architecture
+
 - **Framework**: React 18 with TypeScript for type safety and modern component patterns
 - **Build Tool**: Vite for fast development and optimized production builds
 - **Styling**: Tailwind CSS with custom CSS variables for theming, plus shadcn/ui component library
@@ -17,12 +20,14 @@ Preferred communication style: Simple, everyday language.
 - **Component Structure**: Modular components separating game logic, UI, and canvas rendering
 
 ## Backend Architecture
+
 - **Server**: Express.js with TypeScript for API endpoints
 - **Development**: Hot module replacement via Vite middleware integration
 - **Storage Interface**: Abstracted storage layer with in-memory implementation (ready for database integration)
 - **Error Handling**: Centralized error middleware with proper status codes and logging
 
 ## Game Engine Design
+
 - **Sprites System**: Class-based entities (Turkey, Obstacle, PowerUp, Particle) with update/draw methods
 - **Physics**: Simple gravity and collision detection with configurable parameters
 - **Difficulty Scaling**: Progressive level system with increasing speed, gravity, and obstacle frequency
@@ -30,6 +35,7 @@ Preferred communication style: Simple, everyday language.
 - **Input Handling**: Unified keyboard and mouse/touch input for cross-platform compatibility
 
 ## State Management
+
 - **Game State**: Phase-based state machine (ready → playing → ended) with Zustand
 - **Audio State**: Centralized audio management with lazy loading and error handling
 - **Local Storage**: High score persistence and user preferences
