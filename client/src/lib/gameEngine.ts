@@ -7,6 +7,7 @@ import { drawSky } from './render/sky';
 import { drawGround } from './render/ground';
 import { drawDistantTrees } from './render/trees';
 import { drawClouds } from './render/clouds';
+import { type CanvasDimensions } from '../hooks/use-responsive-canvas';
 
 // Use centralized difficulty constants
 const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
@@ -14,6 +15,7 @@ const DIFFICULTY: { [key: number]: DifficultySettings } = DIFFICULTY_LEVELS;
 export class GameEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private canvasDimensions: CanvasDimensions;
   private turkey: Turkey;
   private obstacles: Obstacle[] = [];
   private leafParticles: LeafParticle[] = [];
@@ -48,17 +50,20 @@ export class GameEngine {
     onScoreIncrease: () => void,
     onGameOver: () => void,
     onLevelUp?: (level: number) => void,
-    onPowerUpCollected?: (type: PowerUpType) => void
+    onPowerUpCollected?: (type: PowerUpType) => void,
+    canvasDimensions?: CanvasDimensions
   ) {
     this.canvas = canvas;
     this.ctx = ctx;
+    this.canvasDimensions = canvasDimensions || { width: 400, height: 600, scale: 1 };
     this.onScoreIncrease = onScoreIncrease;
     this.onGameOver = onGameOver;
     this.onLevelUp = onLevelUp;
     this.onPowerUpCollected = onPowerUpCollected;
     
-    // Initialize turkey
-    this.turkey = new Turkey(GAME_CONSTANTS.TURKEY_START_X, canvas.height / 2);
+    // Initialize turkey with responsive positioning
+    const turkeyStartX = this.canvasDimensions.width * 0.25; // 25% from left
+    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2);
     
     // Load grass texture
     this.loadGrassTexture();
@@ -143,8 +148,9 @@ export class GameEngine {
     this.lastPowerUpSpawnTime = currentTime;
     this.startTime = currentTime;
     
-    // Reinitialize turkey
-    this.turkey = new Turkey(100, this.canvas.height / 2);
+    // Reinitialize turkey with responsive positioning
+    const turkeyStartX = this.canvasDimensions.width * 0.25; // 25% from left
+    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2);
   }
 
   private gameLoop = () => {
@@ -173,8 +179,8 @@ export class GameEngine {
       
       this.turkey.update(currentGravity);
 
-      // Check boundaries
-      if (this.turkey.y < 0 || this.turkey.y + this.turkey.height > this.canvas.height - 50) {
+      // Check boundaries - use responsive canvas dimensions
+      if (this.turkey.y < 0 || this.turkey.y + this.turkey.height > this.canvasDimensions.height - 50) {
         this.endGame();
         return;
       }
@@ -257,15 +263,15 @@ export class GameEngine {
   private draw() {
     const currentTime = Date.now();
     
-    // Clear canvas with gradient sky
-    drawSky(this.ctx, this.canvas.width, this.canvas.height);
+    // Clear canvas with gradient sky - use responsive dimensions
+    drawSky(this.ctx, this.canvasDimensions.width, this.canvasDimensions.height);
 
     // Draw distant trees for depth
     const elapsedTime = (currentTime - this.startTime) / 1000;
-    drawDistantTrees(this.ctx, this.canvas.width, this.canvas.height, elapsedTime, this.getObstacleSpeed());
+    drawDistantTrees(this.ctx, this.canvasDimensions.width, this.canvasDimensions.height, elapsedTime, this.getObstacleSpeed());
 
     // Draw animated moving clouds
-    drawClouds(this.ctx, this.canvas.width, this.canvas.height, elapsedTime);
+    drawClouds(this.ctx, this.canvasDimensions.width, this.canvasDimensions.height, elapsedTime);
 
     // Draw leaf particles in background
     this.leafParticles.forEach(leaf => leaf.draw(this.ctx));
@@ -279,8 +285,8 @@ export class GameEngine {
     // Draw turkey
     this.turkey.draw(this.ctx);
 
-    // Draw ground
-    drawGround(this.ctx, this.canvas.width, this.canvas.height, elapsedTime, this.getObstacleSpeed(), this.grassTexture);
+    // Draw ground - use responsive dimensions
+    drawGround(this.ctx, this.canvasDimensions.width, this.canvasDimensions.height, elapsedTime, this.getObstacleSpeed(), this.grassTexture);
   }
 
 
@@ -289,8 +295,8 @@ export class GameEngine {
 
   private spawnObstacle() {
     const dynamicGap = this.getCurrentObstacleGap();
-    const gapStart = calculateObstacleGapPosition(this.canvas.height, dynamicGap, 100);
-    this.obstacles.push(new Obstacle(this.canvas.width, 0, gapStart, dynamicGap, this.canvas.height));
+    const gapStart = calculateObstacleGapPosition(this.canvasDimensions.height, dynamicGap, 100);
+    this.obstacles.push(new Obstacle(this.canvasDimensions.width, 0, gapStart, dynamicGap, this.canvasDimensions.height));
   }
 
 
@@ -300,7 +306,7 @@ export class GameEngine {
       // Spawn 1-2 leaves at a time
       const numLeaves = getRandomSpawnCount(1, 2, 0.5);
       for (let i = 0; i < numLeaves; i++) {
-        const x = calculateLeafSpawnPosition(this.canvas.width, 25);
+        const x = calculateLeafSpawnPosition(this.canvasDimensions.width, 25);
         const y = -10; // Start above canvas
         this.leafParticles.push(new LeafParticle(x, y));
       }
@@ -313,7 +319,7 @@ export class GameEngine {
       leaf.update();
 
       // Remove off-screen leaves
-      if (leaf.isOffScreen(this.canvas.width, this.canvas.height)) {
+      if (leaf.isOffScreen(this.canvasDimensions.width, this.canvasDimensions.height)) {
         this.leafParticles.splice(i, 1);
       }
     }
@@ -369,9 +375,9 @@ export class GameEngine {
     const randomType = getRandomPowerUpType(types);
     
     // Spawn at random height, avoiding top and bottom areas
-    const y = calculatePowerUpSpawnPosition(this.canvas.height, 50, 100);
+    const y = calculatePowerUpSpawnPosition(this.canvasDimensions.height, 50, 100);
     
-    const powerUp = new PowerUp(this.canvas.width, y, randomType);
+    const powerUp = new PowerUp(this.canvasDimensions.width, y, randomType);
     this.powerUps.push(powerUp);
   }
 
