@@ -1,237 +1,188 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>Convert Turkey SVG to Proper PNG Icons</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                padding: 20px;
-                background: #f5f5f5;
-            }
-            .container {
-                max-width: 900px;
-                margin: 0 auto;
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-            }
-            canvas {
-                margin: 10px;
-                border: 2px solid #ff8c42;
-                background: white;
-            }
-            .instructions {
-                background: #e8f5e8;
-                padding: 15px;
-                border-radius: 5px;
-                margin: 15px 0;
-            }
-            button {
-                background: #ff8c42;
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin: 10px;
-            }
-            .download {
-                display: block;
-                margin: 10px 0;
-                color: #ff8c42;
-                text-decoration: none;
-                font-weight: bold;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🦃 Turkey SVG → PNG Icon Converter</h1>
-
-            <div class="instructions">
-                <strong
-                    >Perfect! This will create proper square PNG icons from your
-                    Turkey SVG design:</strong
-                >
-                <ol>
-                    <li><strong>Click "Generate PNG Icons"</strong> below</li>
-                    <li>
-                        <strong>Wait for icons to appear</strong> (takes a few
-                        seconds)
-                    </li>
-                    <li>
-                        <strong>Right-click each icon</strong> and save as:
-                        <ul>
-                            <li><code>icon-192x192.png</code> (first icon)</li>
-                            <li><code>icon-512x512.png</code> (second icon)</li>
-                            <li>
-                                <code>icon-512x512-maskable.png</code> (third
-                                icon)
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Replace the files</strong> in your
-                        <code>client/public/icons/</code> folder
-                    </li>
-                </ol>
-            </div>
-
-            <button onclick="generateProperIcons()">
-                🚀 Generate PNG Icons
-            </button>
-            <button onclick="clearAll()">🗑️ Clear</button>
-
-            <div id="output"></div>
+<head>
+    <title>Convert Turkey SVG to Proper PNG Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        canvas { margin: 10px; border: 2px solid #FF8C42; background: white; }
+        .instructions { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        button { background: #FF8C42; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; }
+        .download { display: block; margin: 10px 0; color: #FF8C42; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦃 Turkey SVG → PNG Icon Converter</h1>
+        
+        <div class="instructions">
+            <strong>Perfect! This will create proper square PNG icons from your Turkey SVG design:</strong>
+            <ol>
+                <li><strong>Click "Generate PNG Icons"</strong> below</li>
+                <li><strong>Wait for icons to appear</strong> (takes a few seconds)</li>
+                <li><strong>Right-click each icon</strong> and save as:
+                    <ul>
+                        <li><code>icon-192x192.png</code> (first icon)</li>
+                        <li><code>icon-512x512.png</code> (second icon)</li>
+                        <li><code>icon-512x512-maskable.png</code> (third icon)</li>
+                    </ul>
+                </li>
+                <li><strong>Replace the files</strong> in your <code>client/public/icons/</code> folder</li>
+            </ol>
         </div>
+        
+        <button onclick="generateProperIcons()">🚀 Generate PNG Icons</button>
+        <button onclick="clearAll()">🗑️ Clear</button>
+        
+        <div id="output"></div>
+    </div>
 
-        <script>
-                    const turkeyIconSVG = \`<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <!-- Background with rounded corners for modern app icon look -->
-              <rect width="512" height="512" fill="#FF8C42" rx="80"/>
-
-              <!-- Inner background circle -->
-              <circle cx="256" cy="256" r="200" fill="#FFB366"/>
-
-              <!-- Tail feathers (background) -->
-              <ellipse cx="180" cy="240" rx="25" ry="80" fill="#8B4513" transform="rotate(-20 180 240)"/>
-              <ellipse cx="160" cy="260" rx="25" ry="90" fill="#654321" transform="rotate(-10 160 260)"/>
-              <ellipse cx="140" cy="280" rx="25" ry="85" fill="#8B4513" transform="rotate(10 140 280)"/>
-
-              <!-- Turkey body (main oval) -->
-              <ellipse cx="256" cy="280" rx="80" ry="120" fill="#8B4513"/>
-
-              <!-- Turkey breast (lighter color) -->
-              <ellipse cx="256" cy="300" rx="50" ry="80" fill="#A0522D"/>
-
-              <!-- Turkey head -->
-              <circle cx="280" cy="180" r="45" fill="#A0522D"/>
-
-              <!-- Beak -->
-              <polygon points="320,180 340,170 340,190" fill="#FFA500"/>
-
-              <!-- Eye -->
-              <circle cx="295" cy="170" r="6" fill="#000"/>
-              <circle cx="298" cy="167" r="2" fill="#FFF"/>
-
-              <!-- Wattle (red thing under beak) -->
-              <ellipse cx="315" cy="200" rx="8" ry="15" fill="#DC143C"/>
-
-              <!-- Wing detail -->
-              <ellipse cx="220" cy="260" rx="25" ry="60" fill="#654321"/>
-
-              <!-- Feet -->
-              <ellipse cx="240" cy="400" rx="15" ry="8" fill="#FFA500"/>
-              <ellipse cx="280" cy="400" rx="15" ry="8" fill="#FFA500"/>
-
-              <!-- Simple highlight for 3D effect -->
-              <ellipse cx="230" cy="220" rx="40" ry="60" fill="rgba(255,255,255,0.15)"/>
-            </svg>\`;
-
-                    function generateProperIcons() {
-                        const output = document.getElementById('output');
-                        output.innerHTML = '<h3>⏳ Generating proper PNG icons...</h3>';
-
-                        // Create proper app icons
-                        const icons = [
-                            { size: 192, name: 'icon-192x192.png', title: '192×192 PNG Icon' },
-                            { size: 512, name: 'icon-512x512.png', title: '512×512 PNG Icon' },
-                            { size: 512, name: 'icon-512x512-maskable.png', title: '512×512 Maskable PNG', maskable: true }
-                        ];
-
-                        setTimeout(() => {
-                            output.innerHTML = '<h3>✅ Generated PNG Icons (Right-click to save):</h3>';
-
-                            icons.forEach(iconData => {
-                                createPNGFromSVG(iconData, output);
-                            });
-                        }, 500);
-                    }
-
-                    function createPNGFromSVG(iconData, output) {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = iconData.size;
-                        canvas.height = iconData.size;
-                        canvas.title = \`Right-click and save as: \${iconData.name}\`;
-                        canvas.style.maxWidth = '250px';
-                        canvas.style.height = 'auto';
-                        canvas.style.cursor = 'pointer';
-
-                        const ctx = canvas.getContext('2d');
-                        const img = new Image();
-
-                        // Create proper SVG data URI
-                        let svgContent = turkeyIconSVG;
-
-                        if (iconData.maskable) {
-                            // Create maskable version with safe area
-                            svgContent = \`<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                <!-- Full background for maskable -->
-                                <rect width="512" height="512" fill="#FF8C42"/>
-                                <!-- Scaled down content for safe area (80% of canvas) -->
-                                <g transform="translate(51.2, 51.2) scale(0.8)">
-                                    \${turkeyIconSVG.replace('<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">', '').replace('</svg>', '')}
-                                </g>
-                            </svg>\`;
-                        }
-
-                        const svgBlob = new Blob([svgContent], {type: 'image/svg+xml'});
-                        const url = URL.createObjectURL(svgBlob);
-
-                        img.onload = function() {
-                            // Clear canvas and draw SVG
-                            ctx.fillStyle = 'transparent';
-                            ctx.fillRect(0, 0, iconData.size, iconData.size);
-                            ctx.drawImage(img, 0, 0, iconData.size, iconData.size);
-
-                            // Create container
-                            const div = document.createElement('div');
-                            div.style.display = 'inline-block';
-                            div.style.margin = '10px';
-                            div.style.textAlign = 'center';
-
-                            const title = document.createElement('h4');
-                            title.textContent = iconData.title;
-                            title.style.color = '#FF8C42';
-                            title.style.marginBottom = '5px';
-
-                            const subtitle = document.createElement('p');
-                            subtitle.textContent = \`Save as: \${iconData.name}\`;
-                            subtitle.style.fontSize = '12px';
-                            subtitle.style.color = '#666';
-                            subtitle.style.marginTop = '5px';
-
-                            // Add download link
-                            const downloadLink = document.createElement('a');
-                            downloadLink.textContent = '💾 Download PNG';
-                            downloadLink.className = 'download';
-
-                            canvas.toBlob(blob => {
-                                const downloadUrl = URL.createObjectURL(blob);
-                                downloadLink.href = downloadUrl;
-                                downloadLink.download = iconData.name;
-                            });
-
-                            div.appendChild(title);
-                            div.appendChild(canvas);
-                            div.appendChild(subtitle);
-                            div.appendChild(downloadLink);
-                            output.appendChild(div);
-
-                            URL.revokeObjectURL(url);
-                        };
-
-                        img.onerror = function() {
-                            console.error('Failed to load SVG for', iconData.name);
-                        };
-
-                        img.src = url;
-                    }
-
-                    function clearAll() {
-                        document.getElementById('output').innerHTML = '';
-                    }
-        </script>
-    </body>
+    <script>
+        const turkeyIconSVG = \`<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background with rounded corners for modern app icon look -->
+  <rect width="512" height="512" fill="#FF8C42" rx="80"/>
+  
+  <!-- Inner background circle -->
+  <circle cx="256" cy="256" r="200" fill="#FFB366"/>
+  
+  <!-- Tail feathers (background) -->
+  <ellipse cx="180" cy="240" rx="25" ry="80" fill="#8B4513" transform="rotate(-20 180 240)"/>
+  <ellipse cx="160" cy="260" rx="25" ry="90" fill="#654321" transform="rotate(-10 160 260)"/>
+  <ellipse cx="140" cy="280" rx="25" ry="85" fill="#8B4513" transform="rotate(10 140 280)"/>
+  
+  <!-- Turkey body (main oval) -->
+  <ellipse cx="256" cy="280" rx="80" ry="120" fill="#8B4513"/>
+  
+  <!-- Turkey breast (lighter color) -->
+  <ellipse cx="256" cy="300" rx="50" ry="80" fill="#A0522D"/>
+  
+  <!-- Turkey head -->
+  <circle cx="280" cy="180" r="45" fill="#A0522D"/>
+  
+  <!-- Beak -->
+  <polygon points="320,180 340,170 340,190" fill="#FFA500"/>
+  
+  <!-- Eye -->
+  <circle cx="295" cy="170" r="6" fill="#000"/>
+  <circle cx="298" cy="167" r="2" fill="#FFF"/>
+  
+  <!-- Wattle (red thing under beak) -->
+  <ellipse cx="315" cy="200" rx="8" ry="15" fill="#DC143C"/>
+  
+  <!-- Wing detail -->
+  <ellipse cx="220" cy="260" rx="25" ry="60" fill="#654321"/>
+  
+  <!-- Feet -->
+  <ellipse cx="240" cy="400" rx="15" ry="8" fill="#FFA500"/>
+  <ellipse cx="280" cy="400" rx="15" ry="8" fill="#FFA500"/>
+  
+  <!-- Simple highlight for 3D effect -->
+  <ellipse cx="230" cy="220" rx="40" ry="60" fill="rgba(255,255,255,0.15)"/>
+</svg>\`;
+        
+        function generateProperIcons() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h3>⏳ Generating proper PNG icons...</h3>';
+            
+            // Create proper app icons
+            const icons = [
+                { size: 192, name: 'icon-192x192.png', title: '192×192 PNG Icon' },
+                { size: 512, name: 'icon-512x512.png', title: '512×512 PNG Icon' },
+                { size: 512, name: 'icon-512x512-maskable.png', title: '512×512 Maskable PNG', maskable: true }
+            ];
+            
+            setTimeout(() => {
+                output.innerHTML = '<h3>✅ Generated PNG Icons (Right-click to save):</h3>';
+                
+                icons.forEach(iconData => {
+                    createPNGFromSVG(iconData, output);
+                });
+            }, 500);
+        }
+        
+        function createPNGFromSVG(iconData, output) {
+            const canvas = document.createElement('canvas');
+            canvas.width = iconData.size;
+            canvas.height = iconData.size;
+            canvas.title = \`Right-click and save as: \${iconData.name}\`;
+            canvas.style.maxWidth = '250px';
+            canvas.style.height = 'auto';
+            canvas.style.cursor = 'pointer';
+            
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            // Create proper SVG data URI
+            let svgContent = turkeyIconSVG;
+            
+            if (iconData.maskable) {
+                // Create maskable version with safe area
+                svgContent = \`<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!-- Full background for maskable -->
+                    <rect width="512" height="512" fill="#FF8C42"/>
+                    <!-- Scaled down content for safe area (80% of canvas) -->
+                    <g transform="translate(51.2, 51.2) scale(0.8)">
+                        \${turkeyIconSVG.replace('<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">', '').replace('</svg>', '')}
+                    </g>
+                </svg>\`;
+            }
+            
+            const svgBlob = new Blob([svgContent], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                // Clear canvas and draw SVG
+                ctx.fillStyle = 'transparent';
+                ctx.fillRect(0, 0, iconData.size, iconData.size);
+                ctx.drawImage(img, 0, 0, iconData.size, iconData.size);
+                
+                // Create container
+                const div = document.createElement('div');
+                div.style.display = 'inline-block';
+                div.style.margin = '10px';
+                div.style.textAlign = 'center';
+                
+                const title = document.createElement('h4');
+                title.textContent = iconData.title;
+                title.style.color = '#FF8C42';
+                title.style.marginBottom = '5px';
+                
+                const subtitle = document.createElement('p');
+                subtitle.textContent = \`Save as: \${iconData.name}\`;
+                subtitle.style.fontSize = '12px';
+                subtitle.style.color = '#666';
+                subtitle.style.marginTop = '5px';
+                
+                // Add download link
+                const downloadLink = document.createElement('a');
+                downloadLink.textContent = '💾 Download PNG';
+                downloadLink.className = 'download';
+                
+                canvas.toBlob(blob => {
+                    const downloadUrl = URL.createObjectURL(blob);
+                    downloadLink.href = downloadUrl;
+                    downloadLink.download = iconData.name;
+                });
+                
+                div.appendChild(title);
+                div.appendChild(canvas);
+                div.appendChild(subtitle);
+                div.appendChild(downloadLink);
+                output.appendChild(div);
+                
+                URL.revokeObjectURL(url);
+            };
+            
+            img.onerror = function() {
+                console.error('Failed to load SVG for', iconData.name);
+            };
+            
+            img.src = url;
+        }
+        
+        function clearAll() {
+            document.getElementById('output').innerHTML = '';
+        }
+    </script>
+</body>
 </html>

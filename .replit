@@ -46,12 +46,3 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[rules]
-
-[rules.formatter]
-
-[rules.formatter.fileExtensions]
-
-[rules.formatter.fileExtensions.".html"]
-id = "module:nodejs-20/formatter:prettier"
