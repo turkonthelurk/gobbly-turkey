@@ -42,6 +42,15 @@ export class GameEngine {
   private onLevelUp?: (level: number) => void;
   private onPowerUpCollected?: (type: PowerUpType) => void;
 
+  // Error handling and memory leak prevention
+  private errorLog: number[] = []; // Track error timestamps
+  private readonly maxErrorsPerSecond = 3; // Maximum allowed errors per second
+  private readonly errorTrackingWindow = 1000; // Track errors within 1 second window
+  private isInErrorState = false; // Flag to indicate critical error state
+  private consecutiveErrors = 0; // Track consecutive errors
+  private lastSuccessfulFrame = Date.now(); // Track last successful frame
+  private errorRetryTimeoutId: NodeJS.Timeout | null = null; // Track error retry timeout
+
   // Legacy constants - kept for reference but not used (dynamic DIFFICULTY map takes precedence)
 
   constructor(
@@ -113,6 +122,12 @@ export class GameEngine {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
+    
+    // Clear any pending error retry timeout to prevent loop resurrection
+    if (this.errorRetryTimeoutId !== null) {
+      clearTimeout(this.errorRetryTimeoutId);
+      this.errorRetryTimeoutId = null;
+    }
   }
 
   private reset() {
@@ -120,6 +135,12 @@ export class GameEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    
+    // Clear any pending error retry timeout to prevent loop resurrection
+    if (this.errorRetryTimeoutId !== null) {
+      clearTimeout(this.errorRetryTimeoutId);
+      this.errorRetryTimeoutId = null;
     }
     
     // Clear arrays completely
@@ -135,6 +156,9 @@ export class GameEngine {
     this.invulnerabilityEndTime = 0;
     this.currentLevel = 1;
     this.currentScore = 0;
+    
+    // Reset error tracking state
+    this.resetErrorState();
     
     // Notify UI of level reset
     if (this.onLevelUp) {
@@ -154,14 +178,38 @@ export class GameEngine {
   }
 
   private gameLoop = () => {
+    // Check if we're in an error state - if so, don't continue
+    if (this.isInErrorState) {
+      console.warn('Game loop stopped due to critical error state');
+      return;
+    }
+
     try {
       this.update();
       this.draw();
+      
+      // Mark successful frame
+      this.onSuccessfulFrame();
+      
+      // Schedule next frame
       this.animationId = requestAnimationFrame(this.gameLoop);
     } catch (error) {
-      console.error('Game loop error caught:', error);
-      // Try to continue the game loop even if there's an error
-      this.animationId = requestAnimationFrame(this.gameLoop);
+      // Track this error
+      this.onGameLoopError(error);
+      
+      // Check if we should continue or stop the game loop
+      if (!this.isInErrorState) {
+        // Still safe to continue, schedule next frame with a small delay to prevent tight error loops
+        this.errorRetryTimeoutId = setTimeout(() => {
+          // Guards to prevent loop resurrection after stop/reset
+          if (this.isInErrorState || this.gameState === 'ended') {
+            return;
+          }
+          
+          this.errorRetryTimeoutId = null;
+          this.animationId = requestAnimationFrame(this.gameLoop);
+        }, 16); // ~60fps delay
+      }
     }
   };
 
@@ -334,6 +382,120 @@ export class GameEngine {
   private endGame() {
     this.gameState = 'ended';
     this.onGameOver();
+  }
+
+  // Error handling methods for memory leak prevention
+  private resetErrorState(): void {
+    this.errorLog.length = 0;
+    this.isInErrorState = false;
+    this.consecutiveErrors = 0;
+    this.lastSuccessfulFrame = Date.now();
+  }
+
+  private onSuccessfulFrame(): void {
+    this.consecutiveErrors = 0;
+    this.lastSuccessfulFrame = Date.now();
+  }
+
+  private onGameLoopError(error: any): void {
+    const currentTime = Date.now();
+    
+    // Add error to log
+    this.errorLog.push(currentTime);
+    this.consecutiveErrors++;
+    
+    // Clean old errors from tracking window
+    this.cleanErrorLog(currentTime);
+    
+    // Log the error (but limit console spam)
+    if (this.errorLog.length <= this.maxErrorsPerSecond) {
+      console.error('Game loop error:', error);
+    }
+    
+    // Check if we've exceeded error thresholds
+    if (this.shouldEnterErrorState()) {
+      this.enterCriticalErrorState(error);
+    }
+  }
+
+  private cleanErrorLog(currentTime: number): void {
+    // Remove errors older than the tracking window
+    const cutoffTime = currentTime - this.errorTrackingWindow;
+    this.errorLog = this.errorLog.filter(errorTime => errorTime > cutoffTime);
+  }
+
+  private shouldEnterErrorState(): boolean {
+    const currentTime = Date.now();
+    
+    // Check for too many errors in the tracking window
+    if (this.errorLog.length > this.maxErrorsPerSecond) {
+      return true;
+    }
+    
+    // Check for too many consecutive errors
+    if (this.consecutiveErrors >= 5) {
+      return true;
+    }
+    
+    // Check if we haven't had a successful frame in too long
+    const timeSinceLastSuccess = currentTime - this.lastSuccessfulFrame;
+    if (timeSinceLastSuccess > 5000) { // 5 seconds
+      return true;
+    }
+    
+    return false;
+  }
+
+  private enterCriticalErrorState(lastError: any): void {
+    console.error('Entering critical error state due to frequent errors. Last error:', lastError);
+    console.error('Error frequency:', this.errorLog.length, 'errors in', this.errorTrackingWindow + 'ms');
+    console.error('Consecutive errors:', this.consecutiveErrors);
+    
+    this.isInErrorState = true;
+    
+    // Stop the game loop completely
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+    
+    // Transition to error state - if game is playing, end it
+    if (this.gameState === 'playing') {
+      console.warn('Game ended due to critical errors');
+      this.endGame();
+    }
+  }
+
+  // Public method to check if game is in error state
+  public isGameInErrorState(): boolean {
+    return this.isInErrorState;
+  }
+
+  // Public method to attempt recovery from error state
+  public attemptErrorRecovery(): boolean {
+    if (!this.isInErrorState) {
+      return true; // Already recovered
+    }
+    
+    console.log('Attempting to recover from error state...');
+    
+    try {
+      // Reset error tracking
+      this.resetErrorState();
+      
+      // Reset game state to ready
+      this.gameState = 'ready';
+      
+      // Try a basic canvas operation to see if we can recover
+      this.ctx.clearRect(0, 0, this.canvasDimensions.width, this.canvasDimensions.height);
+      
+      console.log('Error recovery successful');
+      return true;
+    } catch (error) {
+      console.error('Error recovery failed:', error);
+      this.isInErrorState = true;
+      return false;
+    }
   }
 
   private updatePowerUps(currentTime: number) {
