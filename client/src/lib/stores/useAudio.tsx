@@ -45,13 +45,19 @@ export const useAudio = create<AudioState>((set, get) => ({
     set({ isInitializing: true, initializationError: null });
     
     try {
-      // Create audio elements with error handling
+      // Create audio elements with mobile-friendly error handling
       const audioElements = {
         backgroundMusic: new Audio('/sounds/background.mp3'),
         hitSound: new Audio('/sounds/hit.mp3'),
         successSound: new Audio('/sounds/success.mp3'),
         flapSound: new Audio('/sounds/hit.mp3')
       };
+      
+      // Configure for mobile compatibility
+      Object.values(audioElements).forEach(audio => {
+        audio.setAttribute('preload', 'auto');
+        audio.setAttribute('crossorigin', 'anonymous');
+      });
       
       // Configure audio elements
       audioElements.backgroundMusic.loop = true;
@@ -61,24 +67,37 @@ export const useAudio = create<AudioState>((set, get) => ({
       audioElements.flapSound.volume = 0.2;
       audioElements.flapSound.playbackRate = 2.0;
       
-      // Add error event listeners for graceful fallback
+      // Add error event listeners with mobile-specific handling
       Object.entries(audioElements).forEach(([key, audio]) => {
         audio.addEventListener('error', (e) => {
-          console.warn(`Audio file failed to load: ${key}`, e);
+          console.warn(`Audio file failed to load: ${key}`, e.error || e);
+          // Continue gracefully - game should work without audio
+        });
+        
+        // Add mobile audio unlock listener
+        audio.addEventListener('canplaythrough', () => {
+          // Audio is ready to play on mobile
         });
       });
       
-      // Preload with individual error handling
+      // Mobile-friendly preload with timeout
       const loadPromises = Object.entries(audioElements).map(([key, audio]) => 
         new Promise<void>((resolve) => {
+          const timeout = setTimeout(() => {
+            console.warn(`Audio preload timeout: ${key} - continuing without preload`);
+            resolve();
+          }, 3000); // 3 second timeout for mobile
+          
           const loadHandler = () => {
+            clearTimeout(timeout);
             audio.removeEventListener('canplaythrough', loadHandler);
             audio.removeEventListener('error', errorHandler);
             resolve();
           };
           
-          const errorHandler = () => {
-            console.warn(`Failed to preload audio: ${key}`);
+          const errorHandler = (e: Event) => {
+            clearTimeout(timeout);
+            console.warn(`Failed to preload audio: ${key}`, e);
             audio.removeEventListener('canplaythrough', loadHandler);
             audio.removeEventListener('error', errorHandler);
             resolve(); // Continue even if individual files fail
@@ -86,7 +105,14 @@ export const useAudio = create<AudioState>((set, get) => ({
           
           audio.addEventListener('canplaythrough', loadHandler);
           audio.addEventListener('error', errorHandler);
-          audio.load();
+          
+          // Try to load, but handle mobile restrictions gracefully
+          try {
+            audio.load();
+          } catch (e) {
+            console.warn(`Audio load failed for ${key}:`, e);
+            resolve();
+          }
         })
       );
       
