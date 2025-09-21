@@ -1,15 +1,19 @@
 export class Turkey {
   public x: number;
   public y: number;
-  public width = 40;
-  public height = 30;
+  public width: number;
+  public height: number;
   private velocity = 0;
   private flapFrame = 0;
   private maxFlapFrame = 10;
+  private scale: number;
 
-  constructor(x: number, y: number) {
+  constructor(x: number, y: number, scale: number = 1) {
     this.x = x;
     this.y = y;
+    this.scale = scale;
+    this.width = 40 * scale;
+    this.height = 30 * scale;
   }
 
   public flap(strength: number) {
@@ -53,41 +57,41 @@ export class Turkey {
     ctx.rotate(rotation);
     ctx.translate(-centerX, -centerY);
 
-    // Turkey body (sienna brown)
+    // Turkey body (sienna brown) - scaled
     ctx.fillStyle = '#A0522D';
     ctx.fillRect(this.x, this.y, this.width * 0.8, this.height * 0.7);
 
-    // Turkey head (saddle brown)
+    // Turkey head (saddle brown) - scaled
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(this.x + this.width * 0.6, this.y - 5, this.width * 0.4, this.height * 0.5);
+    ctx.fillRect(this.x + this.width * 0.6, this.y - 5 * this.scale, this.width * 0.4, this.height * 0.5);
 
-    // Beak
+    // Beak - scaled
     ctx.fillStyle = '#FFA500';
-    ctx.fillRect(this.x + this.width - 2, this.y + 5, 8, 6);
+    ctx.fillRect(this.x + this.width - 2 * this.scale, this.y + 5 * this.scale, 8 * this.scale, 6 * this.scale);
 
-    // Wattle (red thing under beak)
+    // Wattle (red thing under beak) - scaled
     ctx.fillStyle = '#DC143C';
-    ctx.fillRect(this.x + this.width - 2, this.y + 11, 6, 8);
+    ctx.fillRect(this.x + this.width - 2 * this.scale, this.y + 11 * this.scale, 6 * this.scale, 8 * this.scale);
 
-    // Eye
+    // Eye - scaled
     ctx.fillStyle = '#000000';
-    ctx.fillRect(this.x + this.width * 0.7, this.y + 2, 4, 4);
+    ctx.fillRect(this.x + this.width * 0.7, this.y + 2 * this.scale, 4 * this.scale, 4 * this.scale);
 
-    // Wing animation
-    const wingOffset = this.flapFrame > 5 ? -3 : 0;
+    // Wing animation - scaled
+    const wingOffset = this.flapFrame > 5 ? -3 * this.scale : 0;
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(this.x + 5, this.y + wingOffset + 10, this.width * 0.5, this.height * 0.4);
+    ctx.fillRect(this.x + 5 * this.scale, this.y + wingOffset + 10 * this.scale, this.width * 0.5, this.height * 0.4);
 
-    // Tail feathers
+    // Tail feathers - scaled
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(this.x - 10, this.y + 8, 15, 4);
-    ctx.fillRect(this.x - 8, this.y + 5, 15, 4);
-    ctx.fillRect(this.x - 12, this.y + 11, 15, 4);
+    ctx.fillRect(this.x - 10 * this.scale, this.y + 8 * this.scale, 15 * this.scale, 4 * this.scale);
+    ctx.fillRect(this.x - 8 * this.scale, this.y + 5 * this.scale, 15 * this.scale, 4 * this.scale);
+    ctx.fillRect(this.x - 12 * this.scale, this.y + 11 * this.scale, 15 * this.scale, 4 * this.scale);
 
-    // Feet
+    // Feet - scaled
     ctx.fillStyle = '#FFA500';
-    ctx.fillRect(this.x + 10, this.y + this.height - 2, 6, 8);
-    ctx.fillRect(this.x + 20, this.y + this.height - 2, 6, 8);
+    ctx.fillRect(this.x + 10 * this.scale, this.y + this.height - 2 * this.scale, 6 * this.scale, 8 * this.scale);
+    ctx.fillRect(this.x + 20 * this.scale, this.y + this.height - 2 * this.scale, 6 * this.scale, 8 * this.scale);
     
     // Restore canvas state
     ctx.restore();
@@ -96,13 +100,16 @@ export class Turkey {
 
 export class Obstacle {
   public x: number;
-  public width = 60;
+  public width: number;
   public topHeight: number;
   public bottomHeight: number;
   public scored = false;
+  private scale: number;
 
-  constructor(x: number, topY: number, gapStart: number, gapSize: number, canvasHeight: number) {
+  constructor(x: number, topY: number, gapStart: number, gapSize: number, canvasHeight: number, scale: number = 1) {
     this.x = x;
+    this.scale = scale;
+    this.width = 60 * scale;
     this.topHeight = gapStart;
     this.bottomHeight = canvasHeight - (gapStart + gapSize);
   }
@@ -119,13 +126,13 @@ export class Obstacle {
     if (this.topHeight > 0) {
       ctx.fillRect(this.x, 0, this.width, this.topHeight);
       
-      // Add bark texture lines
+      // Add bark texture lines - scaled
       ctx.strokeStyle = '#654321';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < this.topHeight; y += 20) {
+      ctx.lineWidth = 2 * this.scale;
+      for (let y = 0; y < this.topHeight; y += 20 * this.scale) {
         ctx.beginPath();
-        ctx.moveTo(this.x + 10, y + 10);
-        ctx.lineTo(this.x + this.width - 10, y + 12);
+        ctx.moveTo(this.x + 10 * this.scale, y + 10 * this.scale);
+        ctx.lineTo(this.x + this.width - 10 * this.scale, y + 12 * this.scale);
         ctx.stroke();
       }
     }
@@ -135,25 +142,25 @@ export class Obstacle {
       const bottomY = ctx.canvas.height - this.bottomHeight;
       ctx.fillRect(this.x, bottomY, this.width, this.bottomHeight);
       
-      // Add bark texture lines
+      // Add bark texture lines - scaled
       ctx.strokeStyle = '#654321';
-      ctx.lineWidth = 2;
-      for (let y = bottomY; y < ctx.canvas.height; y += 20) {
+      ctx.lineWidth = 2 * this.scale;
+      for (let y = bottomY; y < ctx.canvas.height; y += 20 * this.scale) {
         ctx.beginPath();
-        ctx.moveTo(this.x + 10, y + 10);
-        ctx.lineTo(this.x + this.width - 10, y + 12);
+        ctx.moveTo(this.x + 10 * this.scale, y + 10 * this.scale);
+        ctx.lineTo(this.x + this.width - 10 * this.scale, y + 12 * this.scale);
         ctx.stroke();
       }
     }
 
-    // Add trunk caps
+    // Add trunk caps - scaled
     ctx.fillStyle = '#654321';
     if (this.topHeight > 0) {
-      ctx.fillRect(this.x - 5, this.topHeight - 10, this.width + 10, 20);
+      ctx.fillRect(this.x - 5 * this.scale, this.topHeight - 10 * this.scale, this.width + 10 * this.scale, 20 * this.scale);
     }
     if (this.bottomHeight > 0) {
       const bottomY = ctx.canvas.height - this.bottomHeight;
-      ctx.fillRect(this.x - 5, bottomY - 10, this.width + 10, 20);
+      ctx.fillRect(this.x - 5 * this.scale, bottomY - 10 * this.scale, this.width + 10 * this.scale, 20 * this.scale);
     }
   }
 }
@@ -252,17 +259,21 @@ export interface PowerUpEffect {
 export class PowerUp {
   public x: number;
   public y: number;
-  public width: number = 30;
-  public height: number = 30;
+  public width: number;
+  public height: number;
   public type: PowerUpType;
   public collected: boolean = false;
   private animationTime: number = 0;
   private bobOffset: number = 0;
+  private scale: number;
 
-  constructor(x: number, y: number, type: PowerUpType) {
+  constructor(x: number, y: number, type: PowerUpType, scale: number = 1) {
     this.x = x;
     this.y = y;
     this.type = type;
+    this.scale = scale;
+    this.width = 30 * scale;
+    this.height = 30 * scale;
     this.bobOffset = Math.random() * Math.PI * 2; // Random start phase for bobbing
   }
 
@@ -280,10 +291,10 @@ export class PowerUp {
 
     ctx.save();
     
-    // Add gentle pulsing glow effect
+    // Add gentle pulsing glow effect - scaled
     const glowIntensity = 0.5 + Math.sin(this.animationTime * 2) * 0.2;
     ctx.shadowColor = this.getGlowColor();
-    ctx.shadowBlur = 8 * glowIntensity;
+    ctx.shadowBlur = 8 * glowIntensity * this.scale;
     
     // Draw power-up based on type
     this.drawPowerUpShape(ctx);
@@ -304,9 +315,9 @@ export class PowerUp {
         ctx.arc(centerX, centerY, size * 0.8, 0, Math.PI * 2);
         ctx.fill();
         
-        // Pumpkin lines
+        // Pumpkin lines - scaled
         ctx.strokeStyle = '#D2691E';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * this.scale;
         for (let i = 0; i < 4; i++) {
           const angle = (i / 4) * Math.PI * 2;
           ctx.beginPath();
@@ -318,9 +329,9 @@ export class PowerUp {
           ctx.translate(-centerX, -centerY);
         }
         
-        // Pumpkin stem
+        // Pumpkin stem - scaled
         ctx.fillStyle = '#228B22';
-        ctx.fillRect(centerX - 3, centerY - size - 8, 6, 10);
+        ctx.fillRect(centerX - 3 * this.scale, centerY - size - 8 * this.scale, 6 * this.scale, 10 * this.scale);
         break;
 
       case 'acorn':
