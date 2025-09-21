@@ -10,6 +10,12 @@ interface AudioState {
   isInitializing: boolean; // Track initialization state
   initializationError: string | null; // Track initialization errors
   
+  // Event listener function references for proper cleanup
+  eventListenerRefs: Map<HTMLAudioElement, {
+    error: (e: Event) => void;
+    canplaythrough: () => void;
+  }>;
+  
   // Initialization functions
   initializeAudio: () => Promise<void>;
   retryInitialization: () => Promise<void>;
@@ -33,6 +39,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   isInitialized: false,
   isInitializing: false,
   initializationError: null,
+  eventListenerRefs: new Map(),
   
   initializeAudio: async () => {
     const { isInitializing, isInitialized } = get();
@@ -67,17 +74,28 @@ export const useAudio = create<AudioState>((set, get) => ({
       audioElements.flapSound.volume = 0.2;
       audioElements.flapSound.playbackRate = 2.0;
       
-      // Add error event listeners with mobile-specific handling
+      // Add error event listeners with mobile-specific handling and store references
+      const eventListenerRefs = new Map();
       Object.entries(audioElements).forEach(([key, audio]) => {
-        audio.addEventListener('error', (e) => {
-          console.warn(`Audio file failed to load: ${key}`, e.error || e);
+        // Create named function references for proper cleanup
+        const errorHandler = (e: Event) => {
+          console.warn(`Audio file failed to load: ${key}`, e);
           // Continue gracefully - game should work without audio
+        };
+        
+        const canPlayThroughHandler = () => {
+          // Audio is ready to play on mobile
+        };
+        
+        // Store function references for cleanup
+        eventListenerRefs.set(audio, {
+          error: errorHandler,
+          canplaythrough: canPlayThroughHandler
         });
         
-        // Add mobile audio unlock listener
-        audio.addEventListener('canplaythrough', () => {
-          // Audio is ready to play on mobile
-        });
+        // Add event listeners using stored references
+        audio.addEventListener('error', errorHandler);
+        audio.addEventListener('canplaythrough', canPlayThroughHandler);
       });
       
       // Mobile-friendly preload with timeout
@@ -91,20 +109,20 @@ export const useAudio = create<AudioState>((set, get) => ({
           const loadHandler = () => {
             clearTimeout(timeout);
             audio.removeEventListener('canplaythrough', loadHandler);
-            audio.removeEventListener('error', errorHandler);
+            audio.removeEventListener('error', preloadErrorHandler);
             resolve();
           };
           
-          const errorHandler = (e: Event) => {
+          const preloadErrorHandler = (e: Event) => {
             clearTimeout(timeout);
             console.warn(`Failed to preload audio: ${key}`, e);
             audio.removeEventListener('canplaythrough', loadHandler);
-            audio.removeEventListener('error', errorHandler);
+            audio.removeEventListener('error', preloadErrorHandler);
             resolve(); // Continue even if individual files fail
           };
           
           audio.addEventListener('canplaythrough', loadHandler);
-          audio.addEventListener('error', errorHandler);
+          audio.addEventListener('error', preloadErrorHandler);
           
           // Try to load, but handle mobile restrictions gracefully
           try {
@@ -120,6 +138,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       set({ 
         ...audioElements,
+        eventListenerRefs,
         isInitialized: true,
         isInitializing: false,
         initializationError: null
@@ -165,24 +184,31 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   cleanup: () => {
-    const { backgroundMusic, hitSound, successSound, flapSound } = get();
+    const { eventListenerRefs } = get();
     
-    // Stop and clean up audio elements
-    [backgroundMusic, hitSound, successSound, flapSound].forEach(audio => {
+    // Stop and clean up audio elements by iterating through eventListenerRefs
+    eventListenerRefs.forEach((listenerRefs, audio) => {
       if (audio) {
+        // Pause audio and reset position
         audio.pause();
         audio.currentTime = 0;
-        // Remove event listeners
-        audio.removeEventListener('error', () => {});
-        audio.removeEventListener('canplaythrough', () => {});
+        
+        // Remove event listeners using stored references
+        audio.removeEventListener('error', listenerRefs.error);
+        audio.removeEventListener('canplaythrough', listenerRefs.canplaythrough);
       }
     });
     
+    // Clear event listener references Map
+    eventListenerRefs.clear();
+    
+    // Reset all audio state to null and clear initialization state
     set({ 
       backgroundMusic: null,
       hitSound: null,
       successSound: null,
       flapSound: null,
+      eventListenerRefs: new Map(),
       isInitialized: false,
       isInitializing: false,
       initializationError: null
