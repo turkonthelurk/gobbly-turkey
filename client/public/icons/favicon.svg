@@ -1,0 +1,20 @@
+<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#FF8C42" rx="4"/>
+  
+  <!-- Turkey body -->
+  <ellipse cx="16" cy="20" rx="8" ry="10" fill="#8B4513"/>
+  
+  <!-- Turkey head -->
+  <circle cx="18" cy="12" r="4" fill="#A0522D"/>
+  
+  <!-- Beak -->
+  <polygon points="21,12 24,11 24,13" fill="#FFA500"/>
+  
+  <!-- Eye -->
+  <circle cx="19" cy="11" r="1" fill="#000"/>
+  
+  <!-- Tail feathers -->
+  <ellipse cx="8" cy="18" rx="2" ry="6" fill="#654321" transform="rotate(-20 8 18)"/>
+  <ellipse cx="6" cy="20" rx="2" ry="6" fill="#8B4513"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background with rounded corners for modern app icon look -->
+  <rect width="512" height="512" fill="#FF8C42" rx="80"/>
+  
+  <!-- Inner background circle -->
+  <circle cx="256" cy="256" r="200" fill="#FFB366"/>
+  
+  <!-- Tail feathers (background) -->
+  <ellipse cx="180" cy="240" rx="25" ry="80" fill="#8B4513" transform="rotate(-20 180 240)"/>
+  <ellipse cx="160" cy="260" rx="25" ry="90" fill="#654321" transform="rotate(-10 160 260)"/>
+  <ellipse cx="140" cy="280" rx="25" ry="85" fill="#8B4513" transform="rotate(10 140 280)"/>
+  
+  <!-- Turkey body (main oval) -->
+  <ellipse cx="256" cy="280" rx="80" ry="120" fill="#8B4513"/>
+  
+  <!-- Turkey breast (lighter color) -->
+  <ellipse cx="256" cy="300" rx="50" ry="80" fill="#A0522D"/>
+  
+  <!-- Turkey head -->
+  <circle cx="280" cy="180" r="45" fill="#A0522D"/>
+  
+  <!-- Beak -->
+  <polygon points="320,180 340,170 340,190" fill="#FFA500"/>
+  
+  <!-- Eye -->
+  <circle cx="295" cy="170" r="6" fill="#000"/>
+  <circle cx="298" cy="167" r="2" fill="#FFF"/>
+  
+  <!-- Wattle (red thing under beak) -->
+  <ellipse cx="315" cy="200" rx="8" ry="15" fill="#DC143C"/>
+  
+  <!-- Wing detail -->
+  <ellipse cx="220" cy="260" rx="25" ry="60" fill="#654321"/>
+  
+  <!-- Feet -->
+  <ellipse cx="240" cy="400" rx="15" ry="8" fill="#FFA500"/>
+  <ellipse cx="280" cy="400" rx="15" ry="8" fill="#FFA500"/>
+  
+  <!-- Simple highlight for 3D effect -->
+  <ellipse cx="230" cy="220" rx="40" ry="60" fill="rgba(255,255,255,0.15)"/>
+</svg>
