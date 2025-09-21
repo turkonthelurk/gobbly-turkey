@@ -4,6 +4,7 @@ import { GamePhase } from "../lib/stores/useGame";
 import { PowerUpUpdateCallback, PowerUpCollectionCallback } from "../types/game";
 import { PowerUpType } from "../lib/sprites";
 import { createGameActionDispatcher } from "../lib/input";
+import { useResponsiveCanvas } from "../hooks/use-responsive-canvas";
 
 interface GameCanvasProps {
   onScoreIncrease: () => void;
@@ -30,6 +31,7 @@ const GameCanvas = ({
 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
+  const canvasDimensions = useResponsiveCanvas();
   
   // Callback refs to avoid stale closures
   const onScoreIncreaseRef = useRef(onScoreIncrease);
@@ -82,7 +84,7 @@ const GameCanvas = ({
       return;
     }
 
-    // Initialize game engine with stable callback wrappers
+    // Initialize game engine with stable callback wrappers and responsive dimensions
     gameEngineRef.current = new GameEngine(
       canvas,
       ctx,
@@ -90,6 +92,7 @@ const GameCanvas = ({
       () => onGameOverRef.current(),
       (level: number) => onLevelUpRef.current(level),
       (type: PowerUpType) => onPowerUpCollectedRef.current(type),
+      canvasDimensions
     );
 
     // Start game loop
@@ -106,7 +109,7 @@ const GameCanvas = ({
       document.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("click", handleClick);
     };
-  }, []); // No dependencies - engine created once and persists
+  }, [canvasDimensions]); // Re-create engine when dimensions change
 
   // Update all refs when props change to avoid stale closures
   useEffect(() => {
@@ -145,12 +148,15 @@ const GameCanvas = ({
   return (
     <canvas
       ref={canvasRef}
-      width={400}
-      height={600}
+      width={canvasDimensions.width}
+      height={canvasDimensions.height}
       style={{
         border: "2px solid #8B4513",
         backgroundColor: "#FF8C42",
         cursor: "pointer",
+        maxWidth: "100vw",
+        maxHeight: "100vh",
+        display: "block",
       }}
     />
   );
