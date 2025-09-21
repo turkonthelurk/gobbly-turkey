@@ -61,9 +61,9 @@ export class GameEngine {
     this.onLevelUp = onLevelUp;
     this.onPowerUpCollected = onPowerUpCollected;
     
-    // Initialize turkey with responsive positioning
+    // Initialize turkey with responsive positioning and scaling
     const turkeyStartX = this.canvasDimensions.width * 0.25; // 25% from left
-    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2);
+    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2, this.canvasDimensions.scale);
     
     // Load grass texture
     this.loadGrassTexture();
@@ -148,9 +148,9 @@ export class GameEngine {
     this.lastPowerUpSpawnTime = currentTime;
     this.startTime = currentTime;
     
-    // Reinitialize turkey with responsive positioning
+    // Reinitialize turkey with responsive positioning and scaling
     const turkeyStartX = this.canvasDimensions.width * 0.25; // 25% from left
-    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2);
+    this.turkey = new Turkey(turkeyStartX, this.canvasDimensions.height / 2, this.canvasDimensions.scale);
   }
 
   private gameLoop = () => {
@@ -296,7 +296,7 @@ export class GameEngine {
   private spawnObstacle() {
     const dynamicGap = this.getCurrentObstacleGap();
     const gapStart = calculateObstacleGapPosition(this.canvasDimensions.height, dynamicGap, 100);
-    this.obstacles.push(new Obstacle(this.canvasDimensions.width, 0, gapStart, dynamicGap, this.canvasDimensions.height));
+    this.obstacles.push(new Obstacle(this.canvasDimensions.width, 0, gapStart, dynamicGap, this.canvasDimensions.height, this.canvasDimensions.scale));
   }
 
 
@@ -377,7 +377,7 @@ export class GameEngine {
     // Spawn at random height, avoiding top and bottom areas
     const y = calculatePowerUpSpawnPosition(this.canvasDimensions.height, 50, 100);
     
-    const powerUp = new PowerUp(this.canvasDimensions.width, y, randomType);
+    const powerUp = new PowerUp(this.canvasDimensions.width, y, randomType, this.canvasDimensions.scale);
     this.powerUps.push(powerUp);
   }
 
