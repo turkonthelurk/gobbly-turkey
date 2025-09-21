@@ -8,11 +8,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Set NODE_ENV to development for Replit development environment
-// Only set to production if explicitly configured for deployment
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'development';
-}
+// Let NODE_ENV be set by the environment or deployment system
+// Don't override NODE_ENV in production deployments
 
 const app = express();
 app.use(express.json());
@@ -69,17 +66,18 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   
-  // Detect Replit environment and check if build directory exists
-  const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
+  // Check if built files exist and we're in production mode
   const distPath = path.resolve(__dirname, 'public');
   const distExists = fs.existsSync(distPath);
   
-  if (isReplit || process.env.NODE_ENV !== 'production' || !distExists) {
-    log('Setting up Vite development server...');
-    await setupVite(app, server);
-  } else {
+  // Use production mode only when NODE_ENV is 'production' AND built files exist
+  if (process.env.NODE_ENV === 'production' && distExists) {
     log('Setting up static file serving for production...');
     serveStatic(app);
+  } else {
+    log('Setting up Vite development server...');
+    log(`Reason: NODE_ENV=${process.env.NODE_ENV}, distExists=${distExists}`);
+    await setupVite(app, server);
   }
 
   // ALWAYS serve the app on port 5000
